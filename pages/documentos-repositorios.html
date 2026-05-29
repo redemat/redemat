@@ -1,0 +1,22 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-slate-200 pb-4 mb-6 gap-4">
+            <div>
+                <h2 class="text-2xl font-black text-ucaldas-blue">Archivo de Aplicaciones REDEMAT</h2>
+                <p class="text-sm text-slate-500">Documentación y evidencias recolectadas a lo largo de las cohortes.</p>
+            </div>
+            <!-- Tabs de navegación entre años -->
+            <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <button onclick="toggleYear('2026')" id="tab-2026" class="px-5 py-2 rounded-lg text-xs font-bold transition-all shadow-sm bg-white text-ucaldas-blue">
+                    Año Aplicación 2026
+                </button>
+                <button onclick="toggleYear('2025')" id="tab-2025" class="px-5 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 hover:text-slate-800">
+                    Año Aplicación 2025
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenedor dinámico de pestañas para cargar contenido-2025.html o contenido-2026.html -->
+        <div id="historial-dinamico-container"></div>
+    </div>
+</div>

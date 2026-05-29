@@ -1,0 +1,54 @@
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
+    <!-- Ficha 1 -->
+    <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 flex flex-col justify-between">
+        <div>
+            <div class="flex items-center justify-between mb-3">
+                <span class="bg-ucaldas-green text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">Guía Didáctica</span>
+                <span class="text-xs text-slate-400 font-mono">PDF / Imprimible</span>
+            </div>
+            <h4 class="font-bold text-ucaldas-blue mb-2">Guía Estudiante v2.0 - 2026</h4>
+            <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                Guía rediseñada con desafíos de optimización geométrica e identidades algebraicas mejoradas para la cohorte 2026.
+            </p>
+        </div>
+        <button onclick="simulateDownload('Guia_Estudiante_2026.pdf')" class="w-full bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold py-2.5 px-4 rounded-xl border border-slate-300 transition-all flex items-center justify-center gap-1">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i> Descargar Documento
+        </button>
+    </div>
+
+    <!-- Ficha 2 -->
+    <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 flex flex-col justify-between">
+        <div>
+            <div class="flex items-center justify-between mb-3">
+                <span class="bg-cyan-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">LaTeX</span>
+                <span class="text-xs text-slate-400 font-mono">Overleaf</span>
+            </div>
+            <h4 class="font-bold text-ucaldas-blue mb-2">Plantilla LaTeX Overleaf 2026</h4>
+            <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                Código fuente en LaTeX listo para clonar en Overleaf y ser editado o diagramado bajo estándares universitarios.
+            </p>
+        </div>
+        <button onclick="openTexModal()" class="w-full bg-ucaldas-blue hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-1">
+            <i data-lucide="code" class="w-3.5 h-3.5"></i> Ver Código LaTeX (.tex)
+        </button>
+    </div>
+
+    <!-- Ficha 3 -->
+    <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 flex flex-col justify-between">
+        <div>
+            <div class="flex items-center justify-between mb-3">
+                <span class="bg-amber-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">Evidencias</span>
+                <span class="text-xs text-slate-400 font-mono">2026-1</span>
+            </div>
+            <h4 class="font-bold text-ucaldas-blue mb-2">Registro de Aplicación en el Aula</h4>
+            <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                Fotografías de las dinámicas lúdicas del semestre 2026 con estudiantes de colegios de Manizales.
+            </p>
+        </div>
+        <div class="flex gap-2">
+            <div class="w-12 h-12 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 text-xs font-bold">Foto 1</div>
+            <div class="w-12 h-12 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 text-xs font-bold">Foto 2</div>
+            <button onclick="simulateToast('Abriendo Galería 2026')" class="text-ucaldas-green font-bold text-xs hover:underline flex items-center ml-auto">Ver todas <i data-lucide="chevron-right" class="w-3 h-3"></i></button>
+        </div>
+    </div>
+</div>

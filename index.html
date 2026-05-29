@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REDEMAT - Refuerzo de Matemáticas | Universidad de Caldas</title>
+    
+    <!-- Tailwind CSS (URL Limpia y Corregida) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ucaldas: {
+                            blue: '#0F2042',    // Azul institucional
+                            green: '#006847',   // Verde heráldico U. de Caldas
+                            yellow: '#F2C94C',  // Amarillo/Dorado de realce
+                            light: '#F4F6F9',   // Gris claro de fondo
+                            dark: '#1E293B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="CSS/styles.css">
+    
+    <!-- KaTeX para renderizado matemático (URLs Limpias y Corregidas) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    
+    <!-- Lucide Icons para iconografía moderna (URL Limpia y Corregida) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-ucaldas-light font-sans text-slate-800 flex flex-col min-h-screen">
+
+    <!-- BARRA DE NAVEGACIÓN INSTITUCIONAL -->
+    <header class="bg-ucaldas-blue text-white shadow-md sticky top-0 z-50 border-b-4 border-ucaldas-yellow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="navigateTo('inicio')">
+                    <div class="bg-white p-2 rounded-lg flex items-center justify-center shadow-inner">
+                        <svg class="h-10 w-10 text-ucaldas-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M3 3v18h18" />
+                            <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="text-2xl font-black tracking-wider text-white">REDE<span class="text-ucaldas-yellow">MAT</span></span>
+                        <p class="text-xs text-slate-300 font-semibold tracking-widest uppercase">Universidad de Caldas</p>
+                    </div>
+                </div>
+
+                <!-- Menú de Navegación -->
+                <nav class="hidden md:flex space-x-1">
+                    <button onclick="navigateTo('inicio')" id="nav-inicio" class="nav-btn px-4 py-2 rounded-md font-bold text-sm tracking-wide transition-all duration-200 text-ucaldas-yellow bg-white/10">
+                        <span class="flex items-center gap-1"><i data-lucide="home" class="w-4 h-4"></i> Inicio</span>
+                    </button>
+                    <!-- Selector de Juegos Dropdown -->
+                    <div class="relative group">
+                        <button class="px-4 py-2 rounded-md font-bold text-sm tracking-wide text-slate-200 hover:text-white hover:bg-white/5 transition-all duration-200 flex items-center gap-1">
+                            <span class="flex items-center gap-1"><i data-lucide="gamepad-2" class="w-4 h-4"></i> Juegos Académicos</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                        </button>
+                        <div class="absolute right-0 w-64 bg-white rounded-lg shadow-xl py-2 mt-1 hidden group-hover:block border border-slate-200 text-slate-800 animate-fadeIn">
+                            <button onclick="navigateTo('caja-polinomios')" class="w-full text-left px-4 py-3 hover:bg-ucaldas-light transition-all flex items-center gap-3 border-b border-slate-100">
+                                <span class="bg-ucaldas-green text-white p-1.5 rounded-md"><i data-lucide="layout-grid" class="w-4 h-4"></i></span>
+                                <div>
+                                    <p class="font-bold text-xs text-ucaldas-blue">La Caja de Polinomios</p>
+                                    <p class="text-[10px] text-slate-500">Álgebra & Factorización geométrica</p>
+                                </div>
+                            </button>
+                            <div class="px-4 py-2 bg-slate-50 text-[10px] uppercase tracking-wider font-bold text-slate-400">Próximos lanzamientos</div>
+                            <button class="w-full text-left px-4 py-2 hover:bg-slate-50 text-slate-400 cursor-not-allowed flex items-center gap-3">
+                                <span class="bg-slate-200 text-slate-400 p-1.5 rounded-md"><i data-lucide="compass" class="w-4 h-4"></i></span>
+                                <div>
+                                    <p class="font-bold text-xs">Resonancia Vectorial</p>
+                                    <p class="text-[9px]">Autovalores & Transformaciones</p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                    <button onclick="navigateTo('historial')" id="nav-historial" class="nav-btn px-4 py-2 rounded-md font-bold text-sm tracking-wide text-slate-200 hover:text-white hover:bg-white/5 transition-all duration-200">
+                        <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-4 h-4"></i> Aplicación Histórica</span>
+                    </button>
+                    <button onclick="navigateTo('acerca')" id="nav-acerca" class="nav-btn px-4 py-2 rounded-md font-bold text-sm tracking-wide text-slate-200 hover:text-white hover:bg-white/5 transition-all duration-200">
+                        <span class="flex items-center gap-1"><i data-lucide="info" class="w-4 h-4"></i> REDEMAT</span>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- CUERPO PRINCIPAL (CONTENEDOR ASÍNCRONO) -->
+    <main class="flex-grow">
+        <!-- Dashboard de Inicio (Siempre accesible localmente) -->
+        <section id="sec-inicio" class="page-section max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <!-- Hero Banner -->
+            <div class="bg-gradient-to-r from-ucaldas-blue to-slate-900 rounded-3xl text-white p-8 md:p-12 shadow-xl relative overflow-hidden mb-12 border-b-8 border-ucaldas-green">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,104,71,0.3),transparent_50%)]"></div>
+                <div class="relative z-10 max-w-3xl">
+                    <span class="bg-ucaldas-yellow text-slate-900 font-bold px-4 py-1.5 rounded-full text-xs uppercase tracking-widest shadow-md">Proyecto de Investigación REDEMAT</span>
+                    <h1 class="text-4xl md:text-5xl font-black tracking-tight mt-4 leading-tight">
+                        Visualización Matemática y <span class="text-ucaldas-yellow">Gamificación Universitaria</span>
+                    </h1>
+                    <p class="text-base text-slate-300 mt-4 leading-relaxed">
+                        Iniciativa del Departamento de Matemáticas de la Universidad de Caldas. Entornos lúdicos y simulaciones para el desarrollo del pensamiento abstracto.
+                    </p>
+                    <div class="mt-8 flex flex-wrap gap-4">
+                        <button onclick="navigateTo('caja-polinomios')" class="bg-ucaldas-green hover:bg-emerald-700 text-white font-bold px-6 py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2">
+                            <i data-lucide="play" class="w-5 h-5"></i> Explorar "La Caja de Polinomios"
+                        </button>
+                        <button onclick="navigateTo('historial')" class="bg-slate-800/80 hover:bg-slate-700 text-slate-200 font-bold px-6 py-3.5 rounded-xl border border-slate-700 transition-all duration-200 flex items-center gap-2">
+                            <i data-lucide="archive" class="w-5 h-5"></i> Bitácora Histórica
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Módulos Didácticos -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <div class="bg-ucaldas-green/10 text-ucaldas-green w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                        <i data-lucide="eye" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-ucaldas-blue mb-2">Visualización Dinámica</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Comprensión geométrica antes del desarrollo del formalismo abstracto.
+                    </p>
+                </div>
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <div class="bg-ucaldas-yellow/20 text-slate-800 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                        <i data-lucide="swatchbook" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-ucaldas-blue mb-2">Material Tangible</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Transición del material didáctico físico (MDF) a simulaciones interactivas.
+                    </p>
+                </div>
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <div class="bg-ucaldas-blue/10 text-ucaldas-blue w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                        <i data-lucide="award" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-ucaldas-blue mb-2">Evaluación Formativa</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Seguimiento cualitativo del proceso de aprendizaje mediante el juego matemático.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contenedor dinámico de carga asíncrona (Router SPA) -->
+        <section id="dynamic-content" class="page-section hidden"></section>
+    </main>
+
+    <!-- PIE DE PÁGINA -->
+    <footer class="bg-ucaldas-blue text-white py-12 border-t-4 border-ucaldas-green mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-center text-xs text-slate-400">
+                <p>&copy; 2026 Proyecto REDEMAT - Universidad de Caldas. Licencia CC BY-NC-SA 4.0.</p>
+                <a href="[https://github.com/lelopezm/redemat](https://github.com/lelopezm/redemat)" target="_blank" class="text-slate-400 hover:text-white flex items-center gap-1">
+                    <i data-lucide="github" class="w-4 h-4"></i> GitHub Repository
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- NOTIFICACIONES TOAST -->
+    <div id="toast-notif" class="fixed bottom-5 right-5 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-[110]">
+        <span class="bg-ucaldas-green text-white p-1 rounded-lg"><i data-lucide="info" class="w-4 h-4"></i></span>
+        <span id="toast-text" class="text-xs font-bold"></span>
+    </div>
+
+    <!-- Script principal de lógica de enrutamiento y simuladores -->
+    <script src="js/app.js"></script>
+</body>
+</html>
