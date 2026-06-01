@@ -3,11 +3,29 @@
  * Licenciatura en Matemáticas - Universidad de Caldas
  */
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", async function() {
+    // Cargar asíncronamente los componentes modulares de NAV y FOOTER
+    await loadTemplate("nav-container", "pages/nav.html");
+    await loadTemplate("footer-container", "pages/footer.html");
+
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
 });
+
+/**
+ * Carga un archivo HTML parcial en un contenedor específico
+ */
+async function loadTemplate(containerId, filePath) {
+    try {
+        const response = await fetch(filePath);
+        if (!response.ok) throw new Error(`No se pudo cargar la plantilla: ${filePath}`);
+        const html = await response.text();
+        document.getElementById(containerId).innerHTML = html;
+    } catch (error) {
+        console.error(`Error de REDEMAT al cargar módulo modular:`, error);
+    }
+}
 
 // Almacenamiento temporal de estados del enrutador
 const currentView = {
@@ -22,7 +40,7 @@ async function navigateTo(sectionId) {
     const startSection = document.getElementById("sec-inicio");
     const dynamicContainer = document.getElementById("dynamic-content");
     
-    // Resetear clases de navegación activa
+    // Resetear clases de navegación activa en el nav dinámico recién inyectado
     document.querySelectorAll(".nav-btn").forEach(btn => {
         btn.classList.remove("text-ucaldas-yellow", "bg-white/10");
         btn.classList.add("text-slate-200");
@@ -54,7 +72,7 @@ async function navigateTo(sectionId) {
 
     try {
         const response = await fetch(pagePath);
-        if (!response.ok) throw new Error("No se pudo cargar la vista del módulo.");
+        if (!response.ok) throw new Error("No se pudo cargar la vista del módulo solicitado.");
         const html = await response.text();
         
         dynamicContainer.innerHTML = html;
@@ -83,7 +101,7 @@ async function navigateTo(sectionId) {
             <div class="max-w-md mx-auto my-12 text-center p-8 bg-white rounded-2xl border border-slate-200 shadow-sm">
                 <i data-lucide="alert-triangle" class="w-12 h-12 text-red-500 mx-auto mb-4"></i>
                 <h3 class="font-bold text-lg text-slate-800">Error de Conexión</h3>
-                <p class="text-sm text-slate-500 mt-2">${error.message}</p>
+                <p class="text-sm text-slate-500 mt-2">La sección "${sectionId}" no se pudo sincronizar de forma asíncrona.</p>
                 <button onclick="navigateTo('inicio')" class="mt-4 bg-ucaldas-blue text-white font-bold text-xs py-2 px-4 rounded-xl">Volver al Inicio</button>
             </div>
         `;
