@@ -308,3 +308,6 @@ function copyToClipboard() {
     
     simulateToast("¡Código LaTeX copiado con éxito!");
 }
+
+// Asegurar accesibilidad global de la función de navegación móvil
+window.toggleMobileMenu = toggleMobileMenu;

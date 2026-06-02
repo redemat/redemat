@@ -16,10 +16,11 @@
                 </div>
             </div>
 
-            <!-- Botón de Menú Móvil (Hamburguesa) -->
+            <!-- Botón de Menú Móvil (Hamburguesa - Optimizado con mejor Touch Target y Pointer Events) -->
             <div class="flex md:hidden">
-                <button onclick="toggleMobileMenu()" class="text-slate-200 hover:text-white focus:outline-none p-2 rounded-lg hover:bg-white/10 transition-all">
-                    <i id="mobile-hamburger-icon" data-lucide="menu" class="w-6 h-6"></i>
+                <button onclick="toggleMobileMenu()" class="text-slate-200 hover:text-white focus:outline-none p-3 rounded-lg hover:bg-white/10 transition-all">
+                    <!-- pointer-events-none evita que el SVG intercepte la pulsación en móviles -->
+                    <i id="mobile-hamburger-icon" data-lucide="menu" class="w-6 h-6 pointer-events-none"></i>
                 </button>
             </div>
 
