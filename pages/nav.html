@@ -1,33 +1,41 @@
 <header class="bg-ucaldas-blue text-white shadow-md sticky top-0 z-50 border-b-4 border-ucaldas-yellow">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-20">
-            <!-- Logo y enlace de Inicio -->
+            <!-- Logo y enlace de Inicio (Actualizado con LogoREDEMAT.png) -->
             <div class="flex items-center space-x-3 cursor-pointer" onclick="navigateTo('inicio')">
-                <div class="bg-white p-2 rounded-lg flex items-center justify-center shadow-inner">
-                    <svg class="h-10 w-10 text-ucaldas-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <path d="M3 3v18h18" />
-                        <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
-                    </svg>
+                <div class="bg-white p-1 rounded-lg flex items-center justify-center shadow-md h-12 md:h-14 w-auto">
+                    <!-- Cargamos el logo corporativo desde la carpeta images -->
+                    <img src="images/LogoREDEMAT.png" 
+                         alt="Logo REDEMAT" 
+                         class="h-full w-auto object-contain" 
+                         onerror="this.onerror=null; this.src='https://placehold.co/150x50/0F2042/FFFFFF?text=REDEMAT';">
                 </div>
                 <div>
-                    <span class="text-2xl font-black tracking-wider text-white">REDE<span class="text-ucaldas-yellow">MAT</span></span>
-                    <p class="text-xs text-slate-300 font-semibold tracking-widest uppercase">Universidad de Caldas</p>
+                    <span class="text-xl md:text-2xl font-black tracking-wider text-white">REDE<span class="text-ucaldas-yellow">MAT</span></span>
+                    <p class="text-[9px] md:text-xs text-slate-300 font-semibold tracking-widest uppercase">Universidad de Caldas</p>
                 </div>
             </div>
 
-            <!-- Menú de Navegación Modular -->
+            <!-- Botón de Menú Móvil (Hamburguesa) -->
+            <div class="flex md:hidden">
+                <button onclick="toggleMobileMenu()" class="text-slate-200 hover:text-white focus:outline-none p-2 rounded-lg hover:bg-white/10 transition-all">
+                    <i id="mobile-hamburger-icon" data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Menú de Navegación Desktop (Oculto en móviles) -->
             <nav class="hidden md:flex space-x-1">
                 <button onclick="navigateTo('inicio')" id="nav-inicio" class="nav-btn px-4 py-2 rounded-md font-bold text-sm tracking-wide transition-all duration-200 text-ucaldas-yellow bg-white/10">
                     <span class="flex items-center gap-1"><i data-lucide="home" class="w-4 h-4"></i> Inicio</span>
                 </button>
                 
-                <!-- Dropdown de Juegos Activos (SOLUCIONADO: pt-3 en lugar de mt-1 elimina zona muerta) -->
+                <!-- Dropdown de Juegos Activos -->
                 <div class="relative group">
                     <button class="px-4 py-2 rounded-md font-bold text-sm tracking-wide text-slate-200 hover:text-white hover:bg-white/5 transition-all duration-200 flex items-center gap-1">
                         <span class="flex items-center gap-1"><i data-lucide="gamepad-2" class="w-4 h-4"></i> Juegos Académicos</span>
                         <i data-lucide="chevron-down" class="w-4 h-4"></i>
                     </button>
-                    <!-- El contenedor 'pt-3' actúa como un puente físico invisible para el puntero del mouse -->
+                    <!-- Contenedor 'pt-3' actúa como un puente físico invisible -->
                     <div class="absolute right-0 w-64 pt-3 hidden group-hover:block z-50 animate-fadeIn">
                         <div class="bg-white rounded-lg shadow-xl py-2 border border-slate-200 text-slate-800">
                             <button onclick="navigateTo('caja-polinomios')" class="w-full text-left px-4 py-3 hover:bg-ucaldas-light transition-all flex items-center gap-3 border-b border-slate-100">
@@ -56,6 +64,32 @@
                     <span class="flex items-center gap-1"><i data-lucide="info" class="w-4 h-4"></i> REDEMAT</span>
                 </button>
             </nav>
+        </div>
+    </div>
+
+    <!-- Menú de Navegación Móvil (Se despliega al presionar la hamburguesa) -->
+    <div id="mobile-menu" class="hidden md:hidden bg-ucaldas-blue border-t border-slate-700/60 pb-4 transition-all duration-300">
+        <div class="px-3 pt-2 space-y-1 text-slate-200">
+            <button onclick="navigateTo('inicio'); toggleMobileMenu();" class="w-full text-left px-4 py-3 rounded-xl font-bold text-sm tracking-wide hover:bg-white/10 hover:text-white flex items-center gap-2">
+                <i data-lucide="home" class="w-4 h-4"></i> Inicio
+            </button>
+            
+            <div class="border-t border-b border-slate-700/50 py-2 my-1">
+                <div class="px-4 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400">Juegos Académicos</div>
+                <button onclick="navigateTo('caja-polinomios'); toggleMobileMenu();" class="w-full text-left px-6 py-2.5 rounded-xl text-sm hover:bg-white/10 hover:text-white flex items-center gap-2">
+                    <i data-lucide="layout-grid" class="w-4 h-4 text-ucaldas-green"></i> La Caja de Polinomios
+                </button>
+                <div class="px-6 py-1.5 text-[11px] text-slate-500 italic flex items-center gap-2">
+                    <i data-lucide="compass" class="w-3.5 h-3.5"></i> Resonancia Vectorial (Pronto)
+                </div>
+            </div>
+
+            <button onclick="navigateTo('historial'); toggleMobileMenu();" class="w-full text-left px-4 py-3 rounded-xl font-bold text-sm tracking-wide hover:bg-white/10 hover:text-white flex items-center gap-2">
+                <i data-lucide="calendar" class="w-4 h-4"></i> Aplicación Histórica
+            </button>
+            <button onclick="navigateTo('acerca'); toggleMobileMenu();" class="w-full text-left px-4 py-3 rounded-xl font-bold text-sm tracking-wide hover:bg-white/10 hover:text-white flex items-center gap-2">
+                <i data-lucide="info" class="w-4 h-4"></i> REDEMAT
+            </button>
         </div>
     </div>
 </header>
