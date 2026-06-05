@@ -78,6 +78,18 @@ async function navigateTo(sectionId) {
         dynamicContainer.innerHTML = html;
         currentView.id = sectionId;
         
+        // --- MOTOR DE AUTO-RENDERIZADO DE LATEX ---
+        // Sincroniza y compila de forma automática cualquier fragmento entre $ y $$ que venga en el HTML
+        if (typeof renderMathInElement !== 'undefined') {
+            renderMathInElement(dynamicContainer, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ],
+                throwOnError: false
+            });
+        }
+
         // Re-inicializar iconos dinámicos cargados por Fetch
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
