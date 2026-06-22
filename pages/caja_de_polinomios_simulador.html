@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caja de Polinomios - REDEMAT (U. de Caldas)</title>
+    <!-- Tailwind CSS para diseño responsivo moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons para interfaz de usuario elegante -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        /* Definición matemática precisa basada en la escala solicitada */
+        :root {
+            --unit-size: 32px;      /* Medida de la ficha 1 (32px) */
+            --x-size: 48px;        /* Medida larga de la variable x (48px) */
+            --x2-rect-long: 72px;   /* Medida larga de x2 rectangular (72px) */
+            --x3-long: 72px;       /* Proyección cúbica proporcional (72px) */
+        }
+
+        /* Clases de dimensionamiento exacto y modular, bordes rectos (rounded-none) */
+        .ficha-1 {
+            width: var(--unit-size);
+            height: var(--unit-size);
+        }
+        .ficha-x-horiz {
+            width: var(--x-size);
+            height: var(--unit-size);
+        }
+        .ficha-x-vert {
+            width: var(--unit-size);
+            height: var(--x-size);
+        }
+        .ficha-x2-cuadrada {
+            width: var(--x-size);
+            height: var(--x-size);
+        }
+        .ficha-x2-rect-horiz {
+            width: var(--x2-rect-long);
+            height: var(--unit-size);
+        }
+        .ficha-x2-rect-vert {
+            width: var(--unit-size);
+            height: var(--x2-rect-long);
+        }
+        .ficha-x3-horiz {
+            width: var(--x3-long);
+            height: var(--x-size);
+        }
+        .ficha-x3-vert {
+            width: var(--x-size);
+            height: var(--x3-long);
+        }
+
+        /* Estilos generales de interacción y física de arrastre */
+        .ficha-drag {
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+        }
+        .ficha-drag:active {
+            cursor: grabbing;
+        }
+        .cuadrante-zona {
+            position: relative;
+            transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+        .cuadrante-activo {
+            background-color: rgba(99, 102, 241, 0.08);
+            border-color: #6366f1;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.15) inset;
+        }
+        /* Efecto 3D isométrico premium para la ficha x3 sin bordes redondeados */
+        .ficha-x3-isometric {
+            position: relative;
+            transform-style: preserve-3d;
+            box-shadow: 2px 4px 12px rgba(0,0,0,0.3);
+            transition: width 0.2s, height 0.2s;
+        }
+        /* Sombras de luces de neón para ejes activos */
+        .eje-neon-azul {
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+        .eje-neon-rojo {
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white overflow-x-hidden">
+
+    <!-- Encabezado Institucional -->
+    <header class="bg-slate-950 border-b border-slate-800 text-white shadow-lg py-4 px-6 sticky top-0 z-40 backdrop-blur-md bg-opacity-90">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-indigo-600/20 border border-indigo-500/30 rounded-xl">
+                    <i data-lucide="layers" class="w-8 h-8 text-amber-400"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Caja de Polinomios</h1>
+                    <p class="text-xs md:text-sm text-indigo-300 font-medium">Departamento de Matemáticas, Universidad de Caldas</p>
+                </div>
+            </div>
+            
+            <!-- Acciones de Encabezado -->
+            <div class="flex items-center gap-3">
+                <!-- Botón de Inicio REDEMAT -->
+                <a href="https://redemat.github.io/redemat/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 active:bg-slate-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all border border-slate-800 shadow-sm shadow-indigo-950/10" title="Ir a la página oficial de REDEMAT">
+                    <i data-lucide="home" class="w-4 h-4 text-emerald-400"></i>
+                    <span>Inicio</span>
+                </a>
+                
+                <button onclick="toggleFullscreen()" class="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 active:bg-slate-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all border border-slate-800 shadow-sm shadow-indigo-950/10" title="Alternar Pantalla Completa">
+                    <span id="fullscreen-maximize-icon" class="flex items-center">
+                        <i data-lucide="maximize" class="w-4 h-4 text-amber-300"></i>
+                    </span>
+                    <span id="fullscreen-minimize-icon" class="hidden">
+                        <i data-lucide="minimize" class="w-4 h-4 text-amber-300"></i>
+                    </span>
+                    <span id="fullscreen-text">Pantalla Completa</span>
+                </button>
+                <span class="bg-indigo-950/60 px-4 py-2 rounded-xl border border-indigo-800/50 text-indigo-200 font-semibold flex items-center gap-1.5 shadow-inner text-xs md:text-sm">
+                    <i data-lucide="graduation-cap" class="w-4 h-4 text-amber-400"></i> Proyecto REDEMAT
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenedor de Notificaciones Toast Flotantes -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Contenido Principal -->
+    <main class="max-w-7xl mx-auto p-4 md:p-6 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6 w-full font-sans">
+        
+        <!-- Panel Izquierdo: Dispensador e Instrucciones (4 Cols) -->
+        <aside class="lg:col-span-4 flex flex-col gap-5">
+
+            <!-- Almacén / Dispensador de Fichas REDEMAT -->
+            <div class="bg-slate-900/60 p-5 rounded-2xl shadow-lg border border-slate-800 backdrop-blur-sm">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
+                    <i data-lucide="layout-grid" class="w-4 h-4 text-indigo-400"></i> Dispensador de Fichas
+                </h2>
+                <p class="text-[11px] text-slate-400 mb-4">Haz clic para agregar fichas al tablero. Luego muévelas libremente:</p>
+                
+                <!-- Dispensador de Fichas (Colores Originales del Proyecto con Esquinas Rectas y Tamaños Proporcionales de Muestra) -->
+                <div class="grid grid-cols-2 gap-3 items-end">
+                    <!-- Ficha x^3 (Rosa Pastel) -->
+                    <button onclick="spawnFicha('x3')" class="p-3 bg-slate-950/50 hover:bg-slate-800/80 border border-slate-800 rounded-2xl flex flex-col items-center justify-center transition-all group col-span-2">
+                        <div class="ficha-x3-horiz rounded-none flex items-center justify-center text-slate-950 font-extrabold text-xs shadow-md group-hover:scale-105 transition-transform border border-pink-400" style="background-color: rgb(255, 153, 204);">
+                            x³
+                        </div>
+                        <span class="text-[10px] text-pink-300 font-bold mt-2">Cúbico</span>
+                    </button>
+
+                    <!-- Ficha x^2 Cuadrática (Azul Cielo) -->
+                    <button onclick="spawnFicha('x2')" class="p-3 bg-slate-950/50 hover:bg-slate-800/80 border border-slate-800 rounded-2xl flex flex-col items-center justify-center transition-all group">
+                        <div class="ficha-x2-cuadrada rounded-none flex items-center justify-center text-slate-950 font-extrabold text-xs shadow-md group-hover:scale-105 transition-transform border border-blue-400" style="background-color: rgb(0, 153, 255);">
+                            x²
+                        </div>
+                        <span class="text-[10px] text-blue-300 font-bold mt-2">Cuadrático</span>
+                    </button>
+
+                    <!-- Ficha x^2 Rectangular (Azul Cielo) -->
+                    <button onclick="spawnFicha('x2_rect')" class="p-3 bg-slate-950/50 hover:bg-slate-800/80 border border-slate-800 rounded-2xl flex flex-col items-center justify-center transition-all group" title="Término cuadrático rectangular de dimensiones x^2 x 1">
+                        <div class="ficha-x2-rect-horiz rounded-none flex items-center justify-center text-slate-950 font-extrabold text-xs shadow-md group-hover:scale-105 transition-transform border border-blue-400" style="background-color: rgb(0, 153, 255);">
+                            x²
+                        </div>
+                        <span class="text-[10px] text-blue-300 font-bold mt-2">Cuadrático Rectangular</span>
+                    </button>
+
+                    <!-- Ficha x (Verde Esmeralda Opaco) -->
+                    <button onclick="spawnFicha('x')" class="p-3 bg-slate-950/50 hover:bg-slate-800/80 border border-slate-800 rounded-2xl flex flex-col items-center justify-center transition-all group">
+                        <div class="ficha-x-horiz rounded-none flex items-center justify-center text-slate-950 font-extrabold text-xs shadow-md group-hover:scale-105 transition-transform border border-emerald-600" style="background-color: rgb(34, 197, 94);">
+                            x
+                        </div>
+                        <span class="text-[10px] text-emerald-400 font-bold mt-2">Lineal</span>
+                    </button>
+
+                    <!-- Ficha 1 (Oro/Amarillo) -->
+                    <button onclick="spawnFicha('1')" class="p-3 bg-slate-950/50 hover:bg-slate-800/80 border border-slate-800 rounded-2xl flex flex-col items-center justify-center transition-all group">
+                        <div class="ficha-1 rounded-none flex items-center justify-center text-slate-950 font-extrabold text-xs shadow-md group-hover:scale-105 transition-transform border border-amber-400" style="background-color: rgb(255, 215, 0);">
+                            1
+                        </div>
+                        <span class="text-[10px] text-amber-300 font-bold mt-2">Unidad</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Caja de Herramientas y Acciones -->
+            <div class="bg-slate-900/60 p-5 rounded-2xl shadow-lg border border-slate-800 backdrop-blur-sm flex flex-col gap-3">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                    <i data-lucide="wrench" class="w-4 h-4 text-indigo-400"></i> Acciones del Tablero
+                </h2>
+                
+                <div class="grid grid-cols-1">
+                    <!-- Reiniciar Mesa de Trabajo -->
+                    <button onclick="limpiarTablero()" class="w-full flex items-center justify-center gap-2.5 py-3.5 px-4 bg-rose-500/10 hover:bg-rose-500/20 active:bg-rose-500/30 text-rose-400 font-black rounded-xl text-xs transition-all border border-rose-500/20 shadow-md">
+                        <i data-lucide="trash-2" class="w-4.5 h-4.5"></i> Vaciar Mesa
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Panel Derecho: Tablero de Juego Principal (8 Cols) -->
+        <section class="lg:col-span-8 flex flex-col gap-5">
+            
+            <!-- Contenedor Unificado de Monitors Organizado Horizontalmente (Modulación 2:1 para más holgura) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Monitor de Lectura de Polinomios Ampliado (col-span-2) -->
+                <div class="md:col-span-2 bg-slate-900 border border-slate-800 text-white p-5 rounded-2xl shadow-xl flex flex-col gap-3 justify-center">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse shadow-md shadow-emerald-500/50"></div>
+                        <span class="text-xs text-slate-400 font-bold tracking-wider uppercase">Fórmula Resultante del Plano:</span>
+                    </div>
+                    <!-- Banner Unificado para Mostrar P(x) y Q(x) Dinámicamente -->
+                    <div class="text-lg md:text-xl font-mono font-black text-yellow-400 tracking-wide flex flex-col gap-1.5" id="lectura-polinomio">
+                        <div>P(x) = 0</div>
+                    </div>
+                </div>
+
+                <!-- Banner de Resultado Simplificado más Angosto (col-span-1) -->
+                <div class="md:col-span-1 bg-slate-900 border border-slate-800 text-white p-5 rounded-2xl shadow-xl flex flex-col gap-3 justify-center">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-3.5 h-3.5 rounded-full bg-indigo-500 animate-pulse shadow-md shadow-indigo-500/50"></div>
+                        <span class="text-xs text-indigo-400 font-bold tracking-wider uppercase">Resultado Simplificado:</span>
+                    </div>
+                    <!-- Banner Unificado para la Simplificación limpia de P(x) + Q(x) -->
+                    <div class="text-lg md:text-xl font-mono font-black text-emerald-400 tracking-wide" id="resultado-simplificado">
+                        <div>0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- El Tablero Cartesiano de Ubicación Libre -->
+            <div id="tablero-cartesiano" class="bg-slate-900/40 p-5 rounded-3xl border-4 border-slate-800 relative aspect-[16/11] w-full min-h-[500px] flex flex-col justify-between overflow-hidden shadow-2xl backdrop-blur-sm">
+                
+                <!-- Leyendas de Ejes Modernizadas -->
+                <div class="absolute top-3 left-1/2 -translate-x-1/2 z-20 bg-slate-950 border border-slate-800 text-slate-300 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest shadow-md">Superior P(x)</div>
+                <div class="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 bg-slate-950 border border-slate-800 text-slate-300 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest shadow-md">Inferior Q(x)</div>
+                <div class="absolute left-3 top-1/2 -translate-y-1/2 z-20 bg-slate-950 border border-slate-800 text-slate-300 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest rotate-90 origin-left shadow-md">Izquierda (-)</div>
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 z-20 bg-slate-950 border border-slate-800 text-slate-300 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest -rotate-90 origin-right shadow-md">Derecha (+)</div>
+
+                <!-- Eje Vertical (Y) con efecto neón -->
+                <div class="absolute left-1/2 top-0 bottom-1/2 w-1.5 bg-gradient-to-b from-blue-500 to-blue-600 z-0 -translate-x-1/2 eje-neon-azul"></div>
+                <div class="absolute left-1/2 top-1/2 bottom-0 w-1.5 bg-gradient-to-b from-red-500 to-red-600 z-0 -translate-x-1/2 eje-neon-rojo"></div>
+
+                <!-- Eje Horizontal (X) con efecto neón -->
+                <div class="absolute top-1/2 left-0 right-1/2 h-1.5 bg-gradient-to-r from-red-600 to-red-500 z-0 -translate-y-1/2 eje-neon-rojo"></div>
+                <div class="absolute top-1/2 left-1/2 right-0 h-1.5 bg-gradient-to-r from-blue-500 to-blue-600 z-0 -translate-y-1/2 eje-neon-azul"></div>
+
+                <!-- Cuadrícula de Trabajo de 4 Cuadrantes Independientes para Detección de Colisiones -->
+                <div class="grid grid-cols-2 grid-rows-2 h-full w-full gap-3 z-10">
+                    
+                    <!-- Cuadrante II (Superior Izquierdo - Negativo) -->
+                    <div id="c-sup-izq" ondragover="permitirDrop(event)" ondrop="soltarFicha(event, 'sup-izq')" class="cuadrante-zona border-2 border-dashed border-red-900/30 hover:border-red-500/40 rounded-2xl p-5 flex items-center justify-center relative bg-slate-950/30 shadow-inner">
+                        <span class="text-red-500 font-black text-3xl select-none opacity-10 absolute">(-)</span>
+                    </div>
+
+                    <!-- Cuadrante I (Superior Derecho - Positivo) -->
+                    <div id="c-sup-der" ondragover="permitirDrop(event)" ondrop="soltarFicha(event, 'sup-der')" class="cuadrante-zona border-2 border-dashed border-blue-900/30 hover:border-blue-500/40 rounded-2xl p-5 flex items-center justify-center relative bg-slate-950/30 shadow-inner">
+                        <span class="text-blue-500 font-black text-3xl select-none opacity-10 absolute">(+)</span>
+                    </div>
+
+                    <!-- Cuadrante III (Inferior Izquierdo - Positivo) -->
+                    <div id="c-inf-izq" ondragover="permitirDrop(event)" ondrop="soltarFicha(event, 'inf-izq')" class="cuadrante-zona border-2 border-dashed border-blue-900/30 hover:border-blue-500/40 rounded-2xl p-5 flex items-center justify-center relative bg-slate-950/30 shadow-inner">
+                        <span class="text-blue-500 font-black text-3xl select-none opacity-10 absolute">(+)</span>
+                    </div>
+
+                    <!-- Cuadrante IV (Inferior Derecho - Negativo) -->
+                    <div id="c-inf-der" ondragover="permitirDrop(event)" ondrop="soltarFicha(event, 'inf-der')" class="cuadrante-zona border-2 border-dashed border-red-900/30 hover:border-red-500/40 rounded-2xl p-5 flex items-center justify-center relative bg-slate-950/30 shadow-inner">
+                        <span class="text-red-500 font-black text-3xl select-none opacity-10 absolute">(-)</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Pie de Página -->
+    <footer class="bg-slate-950 text-slate-500 text-center py-4 text-xs border-t border-slate-900 font-sans">
+        <p>© 2026 Universidad de Caldas - Proyecto REDEMAT. Innovación Didáctica para Matemáticas Universitarias.</p>
+    </footer>
+
+    <!-- Lógica de Simulación Interactiva Premium con Posicionamiento Libre -->
+    <script>
+        let idFichaSeq = 0;
+        let fichas = []; // Memoria de fichas: { id, tipo, cuadrante, x, y, rotada }
+
+        // Inicialización de Lucide Icons
+        window.onload = function() {
+            lucide.createIcons();
+            actualizarLecturaPolinomio();
+            
+            document.addEventListener('fullscreenchange', actualizarUIFullscreen);
+            document.addEventListener('webkitfullscreenchange', actualizarUIFullscreen);
+            document.addEventListener('mozfullscreenchange', actualizarUIFullscreen);
+            document.addEventListener('MSFullscreenChange', actualizarUIFullscreen);
+        };
+
+        // Alternar modo de pantalla completa con soporte robusto multi-plataforma e iframe
+        function toggleFullscreen() {
+            try {
+                const doc = window.document;
+                const docEl = doc.documentElement;
+
+                const requestFullscreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msFullscreenElement;
+                const exitFullscreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+                const isFullscreen = doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement;
+
+                if (!isFullscreen) {
+                    if (requestFullscreen) {
+                        requestFullscreen.call(docEl).catch(err => {
+                            mostrarToast("La pantalla completa está bloqueada por las políticas de seguridad de la plataforma.");
+                        });
+                    } else {
+                        mostrarToast("Su navegador no soporta el modo de pantalla completa.");
+                    }
+                } else {
+                    if (exitFullscreen) {
+                        exitFullscreen.call(doc);
+                    }
+                }
+            } catch (e) {
+                mostrarToast("Error al intentar alternar el modo de pantalla completa.");
+            }
+        }
+
+        // Sincronizar UI del botón de pantalla completa
+        function actualizarUIFullscreen() {
+            const maxIcon = document.getElementById('fullscreen-maximize-icon');
+            const minIcon = document.getElementById('fullscreen-minimize-icon');
+            const text = document.getElementById('fullscreen-text');
+            
+            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullscreenElement || document.msFullscreenElement;
+            
+            if (isFullscreen) {
+                if (maxIcon) maxIcon.classList.add('hidden');
+                if (minIcon) minIcon.classList.remove('hidden');
+                if (text) text.innerText = "Salir de Pantalla Completa";
+            } else {
+                if (maxIcon) maxIcon.classList.remove('hidden');
+                if (minIcon) minIcon.classList.add('hidden');
+                if (text) text.innerText = "Pantalla Completa";
+            }
+        }
+
+        // Obtener el valor de signo asociado a cada cuadrante del tablero
+        function obtenerValorCuadrante(cuadrante) {
+            if (cuadrante === 'sup-der' || cuadrante === 'inf-izq') return 1;
+            if (cuadrante === 'sup-izq' || cuadrante === 'inf-der') return -1;
+            return 0;
+        }
+
+        // Generar una nueva ficha estándar en el tablero
+        function spawnFicha(tipo) {
+            idFichaSeq++;
+            const id = `ficha-${idFichaSeq}`;
+            const cuadranteDefecto = 'sup-der';
+            
+            // Posición por defecto centrada aleatoriamente
+            const pxX = 40 + Math.random() * 80;
+            const pxY = 40 + Math.random() * 80;
+
+            fichas.push({
+                id: id,
+                tipo: tipo,
+                cuadrante: cuadranteDefecto,
+                x: pxX,
+                y: pxY,
+                rotada: false
+            });
+
+            crearFichaDOM(id, tipo, cuadranteDefecto, pxX, pxY, false);
+            actualizarLecturaPolinomio();
+        }
+
+        // Crear una ficha visual en el tablero (Colores Originales del Proyecto con Esquinas Rectas y Tamaños Proporcionales de 32px)
+        function crearFichaDOM(id, tipo, cuadranteId, x, y, rotada) {
+            const contenedorDestino = getCuadranteDOM(cuadranteId);
+            if (!contenedorDestino) return;
+
+            let configVisual = {
+                colorBg: 'rgb(255, 215, 0)', // 1 (Oro/Amarillo)
+                colorBorder: 'rgb(215, 175, 0)',
+                sizeClass: 'ficha-1',
+                label: '1',
+                textColor: 'text-slate-950',
+                customClass: '',
+                rotatable: false
+            };
+
+            if (tipo === 'x3') {
+                configVisual = {
+                    colorBg: 'rgb(255, 153, 204)', // x^3 (Rosa)
+                    colorBorder: 'rgb(220, 120, 170)',
+                    sizeClass: rotada ? 'ficha-x3-vert' : 'ficha-x3-horiz',
+                    label: 'x³',
+                    textColor: 'text-slate-950',
+                    customClass: 'ficha-x3-isometric',
+                    rotatable: true
+                };
+            } else if (tipo === 'x2') {
+                configVisual = {
+                    colorBg: 'rgb(0, 153, 255)', // x^2 Cuadrada (Azul)
+                    colorBorder: 'rgb(0, 122, 204)',
+                    sizeClass: 'ficha-x2-cuadrada',
+                    label: 'x²',
+                    textColor: 'text-slate-950',
+                    customClass: '',
+                    rotatable: false
+                };
+            } else if (tipo === 'x2_rect') {
+                configVisual = {
+                    colorBg: 'rgb(0, 153, 255)', // x^2 Rectangular (Azul)
+                    colorBorder: 'rgb(0, 122, 204)',
+                    sizeClass: rotada ? 'ficha-x2-rect-vert' : 'ficha-x2-rect-horiz',
+                    label: 'x²',
+                    textColor: 'text-slate-950',
+                    customClass: '',
+                    rotatable: true
+                };
+            } else if (tipo === 'x') {
+                configVisual = {
+                    colorBg: 'rgb(34, 197, 94)', // x (Verde)
+                    colorBorder: 'rgb(22, 163, 74)',
+                    sizeClass: rotada ? 'ficha-x-vert' : 'ficha-x-horiz',
+                    label: 'x',
+                    textColor: 'text-slate-950',
+                    customClass: '',
+                    rotatable: true
+                };
+            }
+
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = `ficha-drag absolute ${configVisual.sizeClass} border-2 rounded-none font-black text-[10px] md:text-xs flex items-center justify-center shadow-lg select-none z-20 ${configVisual.textColor} ${configVisual.customClass}`;
+            div.style.backgroundColor = configVisual.colorBg;
+            div.style.borderColor = configVisual.colorBorder;
+            
+            // Posicionamiento absoluto exacto
+            div.style.left = `${x}px`;
+            div.style.top = `${y}px`;
+            
+            div.setAttribute('draggable', 'true');
+            
+            // Botón de rotación si aplica (esquinas rectas)
+            const botonRotacion = configVisual.rotatable ? `
+                <button onclick="rotarFicha('${id}', event)" class="absolute -bottom-1.5 -left-1.5 bg-slate-900 border border-slate-700 hover:bg-indigo-600 text-white rounded-none w-5 h-5 flex items-center justify-center shadow-sm transition-all" title="Girar 90 grados">
+                    <svg class="w-3 h-3 text-slate-100" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path>
+                    </svg>
+                </button>
+            ` : '';
+
+            div.innerHTML = `
+                <span>${configVisual.label}</span>
+                ${botonRotacion}
+                <button onclick="eliminarFicha('${id}')" class="absolute -top-1.5 -right-1.5 bg-slate-950/80 hover:bg-red-600 text-white rounded-none w-5 h-5 flex items-center justify-center shadow-sm transition-colors" title="Eliminar ficha">
+                    <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            `;
+
+            // Registro de coordenadas de agarre (offset del puntero)
+            div.addEventListener('dragstart', (e) => {
+                const rect = div.getBoundingClientRect();
+                const grabX = e.clientX - rect.left;
+                const grabY = e.clientY - rect.top;
+                
+                e.dataTransfer.setData('text/plain', id);
+                e.dataTransfer.setData('grabX', grabX);
+                e.dataTransfer.setData('grabY', grabY);
+                
+                setTimeout(() => div.classList.add('opacity-40'), 0);
+            });
+
+            div.addEventListener('dragend', () => {
+                div.classList.remove('opacity-40');
+            });
+
+            contenedorDestino.appendChild(div);
+        }
+
+        // Rotar pieza 90 grados (Permite rotar lineales, rectangulares y cúbicas)
+        function rotarFicha(id, event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            
+            const fichaObj = fichas.find(f => f.id === id);
+            if (fichaObj && (fichaObj.tipo === 'x' || fichaObj.tipo === 'x2_rect' || fichaObj.tipo === 'x3')) {
+                fichaObj.rotada = !fichaObj.rotada;
+                
+                // Eliminar y volver a renderizar con la nueva orientación
+                const domElem = document.getElementById(id);
+                if (domElem) {
+                    domElem.remove();
+                }
+                crearFichaDOM(fichaObj.id, fichaObj.tipo, fichaObj.cuadrante, fichaObj.x, fichaObj.y, fichaObj.rotada);
+                mostrarToast("Pieza orientada a 90 grados");
+            }
+        }
+
+        // Obtener contenedor del cuadrante por ID
+        function getCuadranteDOM(cuadranteId) {
+            switch(cuadranteId) {
+                case 'sup-izq': return document.getElementById('c-sup-izq');
+                case 'sup-der': return document.getElementById('c-sup-der');
+                case 'inf-izq': return document.getElementById('c-inf-izq');
+                case 'inf-der': return document.getElementById('c-inf-der');
+                default: return null;
+            }
+        }
+
+        // Permitir Drop en las áreas correspondientes
+        function permitirDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('cuadrante-activo');
+        }
+
+        // Manejar el soltado con Posicionamiento Libre Absoluto
+        function soltarFicha(e, cuadranteDestinoId) {
+            e.preventDefault();
+            const cuadranteDOM = getCuadranteDOM(cuadranteDestinoId);
+            cuadranteDOM.classList.remove('cuadrante-activo');
+
+            const id = e.dataTransfer.getData('text/plain');
+            const grabX = parseFloat(e.dataTransfer.getData('grabX') || 0);
+            const grabY = parseFloat(e.dataTransfer.getData('grabY') || 0);
+            
+            const fichaElem = document.getElementById(id);
+            if (fichaElem && cuadranteDOM) {
+                const quadRect = cuadranteDOM.getBoundingClientRect();
+                
+                // Calcular coordenadas relativas dentro del cuadrante destino
+                let posX = e.clientX - quadRect.left - grabX;
+                let posY = e.clientY - quadRect.top - grabY;
+
+                // Margen de seguridad para que la ficha no se salga del cuadrante
+                const elemRect = fichaElem.getBoundingClientRect();
+                posX = Math.max(2, Math.min(posX, quadRect.width - elemRect.width - 2));
+                posY = Math.max(2, Math.min(posY, quadRect.height - elemRect.height - 2));
+
+                // Aplicar coordenadas al elemento
+                fichaElem.style.left = `${posX}px`;
+                fichaElem.style.top = `${posY}px`;
+
+                // Reanclar en el árbol del DOM
+                cuadranteDOM.appendChild(fichaElem);
+
+                // Actualizar estado en memoria
+                const fichaObj = fichas.find(f => f.id === id);
+                if (fichaObj) {
+                    fichaObj.cuadrante = cuadranteDestinoId;
+                    fichaObj.x = posX;
+                    fichaObj.y = posY;
+                }
+
+                actualizarLecturaPolinomio();
+            }
+        }
+
+        // Eliminar elemento del tablero
+        function eliminarFicha(id) {
+            fichas = fichas.filter(f => f.id !== id);
+            const elem = document.getElementById(id);
+            if (elem) elem.remove();
+            actualizarLecturaPolinomio();
+        }
+
+        // Reiniciar todo
+        function limpiarTablero() {
+            fichas = [];
+            document.querySelectorAll('.ficha-drag').forEach(e => e.remove());
+            actualizarLecturaPolinomio();
+            mostrarToast("Mesa de trabajo limpia por completo.");
+        }
+
+        // Motor de Lectura Simbólica del Tablero en Tiempo Real y Simplificación Algebraica
+        function actualizarLecturaPolinomio() {
+            let p = { x3: 0, x2: 0, x: 0, const: 0 }; // Polinomio Superior
+            let q = { x3: 0, x2: 0, x: 0, const: 0 }; // Polinomio Inferior
+
+            let haySuperior = false;
+            let hayInferior = false;
+
+            fichas.forEach(f => {
+                let valor = obtenerValorCuadrante(f.cuadrante);
+                
+                if (f.cuadrante.startsWith('sup')) {
+                    haySuperior = true;
+                    if (f.tipo === 'x3') p.x3 += valor;
+                    if (f.tipo === 'x2' || f.tipo === 'x2_rect') p.x2 += valor;
+                    if (f.tipo === 'x') p.x += valor;
+                    if (f.tipo === '1') p.const += valor;
+                } else {
+                    hayInferior = true;
+                    if (f.tipo === 'x3') q.x3 += valor;
+                    if (f.tipo === 'x2' || f.tipo === 'x2_rect') q.x2 += valor;
+                    if (f.tipo === 'x') q.x += valor;
+                    if (f.tipo === '1') q.const += valor;
+                }
+            });
+
+            const stringP = construirPolinomioString(p);
+            const stringQ = construirPolinomioString(q);
+            const visor = document.getElementById('lectura-polinomio');
+            const simplificadoVisor = document.getElementById('resultado-simplificado');
+
+            if (fichas.length === 0) {
+                visor.innerHTML = `<div>P(x) = 0</div>`;
+                simplificadoVisor.innerHTML = `<div>0</div>`;
+                return;
+            }
+
+            // 1. Mostrar Lectura de Polinomios del Plano
+            if (haySuperior && hayInferior) {
+                visor.innerHTML = `
+                    <div class="flex flex-col md:flex-row gap-2 justify-center items-center text-sm md:text-base">
+                        <span class="text-indigo-400 font-bold">Superior:</span> P(x) = ${stringP} 
+                        <span class="text-slate-500 hidden md:inline">|</span> 
+                        <span class="text-rose-400 font-bold">Inferior:</span> Q(x) = ${stringQ}
+                    </div>
+                `;
+            } else if (hayInferior) {
+                visor.innerHTML = `<div>Q(x) = ${stringQ}</div>`;
+            } else {
+                visor.innerHTML = `<div>P(x) = ${stringP}</div>`;
+            }
+
+            // 2. Calcular y Mostrar la Simplificación limpia de P(x) + Q(x) (Únicamente el resultado neto)
+            let s = {
+                x3: p.x3 + q.x3,
+                x2: p.x2 + q.x2,
+                x: p.x + q.x,
+                const: p.const + q.const
+            };
+            const stringS = construirPolinomioString(s);
+
+            simplificadoVisor.innerHTML = `<div>${stringS}</div>`;
+        }
+
+        // Construye un string LaTeX-like legible para el monitor
+        function construirPolinomioString(p) {
+            let terminos = [];
+            
+            // Grado 3
+            if (p.x3 !== undefined && p.x3 !== 0) {
+                if (p.x3 === 1) terminos.push("x³");
+                else if (p.x3 === -1) terminos.push("-x³");
+                else terminos.push(`${p.x3}x³`);
+            }
+
+            // Grado 2
+            if (p.x2 !== undefined && p.x2 !== 0) {
+                let prefijo = (p.x2 > 0 && terminos.length > 0) ? "+" : "";
+                if (p.x2 === 1) terminos.push(`${prefijo}x²`);
+                else if (p.x2 === -1) terminos.push("-x²");
+                else terminos.push(`${prefijo}${p.x2}x²`);
+            }
+
+            // Grado 1
+            if (p.x !== undefined && p.x !== 0) {
+                let prefijo = (p.x > 0 && terminos.length > 0) ? "+" : "";
+                if (p.x === 1) terminos.push(`${prefijo}x`);
+                else if (p.x === -1) terminos.push("-x");
+                else terminos.push(`${prefijo}${p.x}x`);
+            }
+
+            // Grado 0
+            if (p.const !== undefined && p.const !== 0) {
+                let prefijo = (p.const > 0 && terminos.length > 0) ? "+" : "";
+                terminos.push(`${prefijo}${p.const}`);
+            }
+
+            return terminos.length === 0 ? "0" : terminos.join(" ");
+        }
+
+        // Notificaciones Flotantes (Toast)
+        function mostrarToast(mensaje) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = "bg-slate-900 border border-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-xl flex items-center gap-2 pointer-events-auto transform translate-y-2 opacity-0 transition-all duration-300";
+            toast.innerHTML = `
+                <i class="w-4 h-4 text-indigo-400 animate-pulse" data-lucide="bell"></i>
+                <span>${mensaje}</span>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-[-8px]');
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
