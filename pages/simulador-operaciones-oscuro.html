@@ -1,0 +1,2130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caja de Polinomios - REDEMAT (U. de Caldas)</title>
+    <!-- Tailwind CSS para diseño responsivo moderno -->
+    <!-- En local -->
+    <!-- <script src="https://unpkg.com/@tailwindcss/browser@4"></script> -->
+    <!-- En linea -->
+    <script src="https://cdn.tailwindcss.com"></script> 
+    <!-- Lucide Icons para interfaz de usuario elegante -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        /* Definición de la escala calibrada al píxel del Proyecto REDEMAT */
+        :root {
+            --unit-size: 32px;      /* Medida de la ficha 1 (32px) */
+            --x-size: 48px;        /* Medida larga de la variable x (48px) */
+            --x2-rect-long: 72px;   /* Medida larga de x2 rectangular (72px) */
+            --x3-long: 72px;       /* Proyección cúbica proporcional (72px) */
+        }
+
+        /* Dimensiones físicas estrictas y modulares con esquinas rectas */
+        .ficha-1 {
+            width: var(--unit-size);
+            height: var(--unit-size);
+        }
+        .ficha-x-horiz {
+            width: var(--x-size);
+            height: var(--unit-size);
+        }
+        .ficha-x-vert {
+            width: var(--unit-size);
+            height: var(--x-size);
+        }
+        .ficha-x2-cuadrada {
+            width: var(--x-size);
+            height: var(--x-size);
+        }
+        .ficha-x2-rect-horiz {
+            width: var(--x2-rect-long);
+            height: var(--unit-size);
+        }
+        .ficha-x2-rect-vert {
+            width: var(--unit-size);
+            height: var(--x2-rect-long);
+        }
+        .ficha-x3-horiz {
+            width: var(--x3-long);
+            height: var(--x-size);
+        }
+        .ficha-x3-vert {
+            width: var(--x-size);
+            height: var(--x3-long);
+        }
+
+        /* Estilos generales de interacción y física de arrastre absoluto */
+        .ficha-drag {
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+            transition: opacity 0.15s;
+        }
+        .ficha-drag:active {
+            cursor: grabbing;
+        }
+        .cuadrante-zona {
+            position: relative;
+            transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+        .cuadrante-activo {
+            background-color: rgba(99, 102, 241, 0.08);
+            border-color: #6366f1;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.15) inset;
+        }
+        /* Efecto 3D isométrico premium para la ficha x3 sin bordes redondeados */
+        .ficha-x3-isometric {
+            position: relative;
+            transform-style: preserve-3d;
+            box-shadow: 2px 4px 12px rgba(0,0,0,0.3);
+            transition: width 0.2s, height 0.2s;
+        }
+        /* Sombras de luces de neón para ejes activos */
+        .eje-neon-azul {
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+        .eje-neon-rojo {
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white overflow-x-hidden">
+
+    <!-- Encabezado Institucional Premium Compactado -->
+    <header class="bg-slate-950 border-b border-slate-800 text-white shadow-lg py-2 px-6 sticky top-0 z-40 backdrop-blur-md bg-opacity-90 font-sans">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-indigo-600/20 border border-indigo-500/30 rounded-xl">
+                    <i data-lucide="layers" class="w-6 h-6 text-amber-400"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-black tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Caja de Polinomios</h1>
+                    <p class="text-[11px] text-indigo-300 font-medium leading-none mt-0.5">Departamento de Matemáticas, Universidad de Caldas</p>
+                </div>
+            </div>
+            
+            <!-- Acciones de Encabezado -->
+            <div class="flex items-center gap-2.5 text-xs">
+                <!-- Botón de Inicio REDEMAT -->
+                <a href="https://redemat.github.io/redemat/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 active:bg-slate-700 text-white font-bold py-1.5 px-3.5 rounded-xl transition-all border border-slate-800 shadow-sm shadow-indigo-950/10" title="Ir a la página oficial de REDEMAT">
+                    <i data-lucide="home" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span>Inicio</span>
+                </a>
+                
+                <button onclick="toggleFullscreen()" class="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 active:bg-slate-700 text-white font-bold py-1.5 px-3.5 rounded-xl transition-all border border-slate-800 shadow-sm shadow-indigo-950/10" title="Alternar Pantalla Completa">
+                    <span id="fullscreen-maximize-icon" class="flex items-center">
+                        <i data-lucide="maximize" class="w-3.5 h-3.5 text-amber-300"></i>
+                    </span>
+                    <span id="fullscreen-minimize-icon" class="hidden">
+                        <i data-lucide="minimize" class="w-3.5 h-3.5 text-amber-300"></i>
+                    </span>
+                    <span id="fullscreen-text">Pantalla Completa</span>
+                </button>
+                <span class="bg-indigo-950/60 px-3.5 py-1.5 rounded-xl border border-indigo-800/50 text-indigo-200 font-semibold flex items-center gap-1 shadow-inner">
+                    <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-amber-400"></i> Proyecto REDEMAT
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra de Navegación del Cuádruple Módulo Compactado -->
+    <nav class="bg-slate-950 border-b border-slate-800 sticky top-[57px] z-30 font-sans">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-center md:justify-start px-6 gap-1">
+            <button onclick="cambiarPagina('modulo-estandar')" id="tab-modulo-estandar" class="py-2.5 px-4 font-bold text-xs border-b-4 border-indigo-500 text-indigo-400 flex items-center gap-1.5 transition-all">
+                <i data-lucide="plus-minus" class="w-3.5 h-3.5"></i> 1. Adición y Sustracción
+            </button>
+            <button onclick="cambiarPagina('modulo-multiplicacion')" id="tab-modulo-multiplicacion" class="py-2.5 px-4 font-bold text-xs border-b-4 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-all">
+                <i data-lucide="calculator" class="w-3.5 h-3.5"></i> 2. Multiplicación
+            </button>
+            <button onclick="cambiarPagina('modulo-division')" id="tab-modulo-division" class="py-2.5 px-4 font-bold text-xs border-b-4 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-all">
+                <i data-lucide="divide-circle" class="w-3.5 h-3.5"></i> 3. División
+            </button>
+            <button onclick="cambiarPagina('modulo-factorizacion')" id="tab-modulo-factorizacion" class="py-2.5 px-4 font-bold text-xs border-b-4 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-all">
+                <i data-lucide="shrink" class="w-3.5 h-3.5"></i> 4. Factorización
+            </button>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal con Espaciado Ajustado (Gap-4 en lugar de Gap-6) -->
+    <main class="max-w-7xl mx-auto p-3 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-4 w-full font-sans">
+        
+        <!-- Panel Izquierdo: Dispensador e Instrucciones Adaptativas (4 Cols) -->
+        <aside class="lg:col-span-4 flex flex-col gap-4">
+            
+            <!-- Selector de Operación Interna -->
+            <div id="card-operacion-estandar" class="bg-slate-900/60 p-4 rounded-2xl shadow-lg border border-slate-800 backdrop-blur-sm transition-all">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                    <i data-lucide="settings" class="w-4 h-4 text-indigo-400"></i> Operación en Curso
+                </h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="setModo('adicion')" id="btn-adicion" class="mode-btn flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all bg-indigo-600 text-white shadow-md shadow-indigo-500/20 font-sans">
+                        Adición
+                    </button>
+                    <button onclick="setModo('sustraccion')" id="btn-sustraccion" class="mode-btn flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-400 hover:bg-slate-700 font-sans">
+                        Sustracción
+                    </button>
+                </div>
+                <div class="mt-3 p-3 bg-indigo-950/40 rounded-xl border border-indigo-900/40 text-xs text-indigo-200 flex items-start gap-2">
+                    <i data-lucide="help-circle" class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5"></i>
+                    <p id="modo-descripcion" class="leading-relaxed text-[11px]">
+                        Regla de Adición: Ubica el polinomio P(x) arriba y Q(x) abajo. Luego haz clic en "Cruzar en Diagonal" para llevar las fichas de abajo hacia arriba. Finalmente, da clic en "Simplificar" para ver su suma.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Panel Informativo Bloqueado para Multiplicación -->
+            <div id="card-operacion-multiplicacion" class="hidden bg-slate-900/60 p-4 rounded-2xl shadow-lg border border-slate-800 backdrop-blur-sm transition-all">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                    <i data-lucide="info" class="w-4 h-4 text-indigo-400"></i> Módulo de Multiplicación
+                </h2>
+                <div class="p-3 bg-indigo-950/40 rounded-xl border border-indigo-900/40 text-[11px] text-indigo-200 flex items-start gap-2">
+                    <i data-lucide="help-circle" class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5"></i>
+                    <p class="leading-relaxed">
+                        Regla de Multiplicación: Organiza los factores sobre los ejes horizontal y vertical. Haz clic en "Generar Intersección" para visualizar el rectángulo que se forma, luego da clic en "Distribuir Fichas" y finaliza dando clic en "Simplificar" para obtener su producto.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Panel Informativo para División -->
+            <div id="card-operacion-division" class="hidden bg-slate-900/60 p-4 rounded-2xl shadow-lg border border-slate-800 backdrop-blur-sm transition-all">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                    <i data-lucide="divide" class="w-4 h-4 text-indigo-400"></i> Módulo de División
+                </h2>
+                <div class="p-3 bg-indigo-950/40 rounded-xl border border-indigo-900/40 text-[11px] text-indigo-200 flex items-start gap-2">
+                    <i data-lucide="help-circle" class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5"></i>
+                    <p class="leading-relaxed">
+                        Regla de División: Ubica el dividendo P(x) de forma libre en los dos cuadrantes superiores. Configura el divisor Q(x) sobre el eje horizontal. Haz clic en "Ejecutar División" para visualizar la construcción, finaliza haciendo clic en "Ver Resultado" para calcular cociente y residuo.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Panel Informativo para Factorización -->
+            <div id="card-operacion-factorizacion" class="hidden bg-slate-900/60 p-4 rounded-2xl shadow-lg border border-slate-850 backdrop-blur-sm transition-all">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                    <i data-lucide="shrink" class="w-4 h-4 text-indigo-400"></i> Módulo de Factorización
+                </h2>
+                <div class="p-3 bg-indigo-950/40 rounded-xl border border-indigo-900/40 text-[11px] text-indigo-200 flex items-start gap-2">
+                    <i data-lucide="help-circle" class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5"></i>
+                    <p class="leading-relaxed">
+                        Regla de Factorización: Ubica el polinomio P(x) a factorizar en los cuadrantes superiores. Haz clic en "Reagrupar Fichas" para que el motor asamble el mosaico perfecto y revele los factores.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Almacén / Dispensador de Fichas Adaptativo (Optimizado para evitar espacios vacíos superiores) -->
+            <div class="bg-slate-900/60 p-4 rounded-2xl shadow-lg border border-slate-800 backdrop-blur-sm flex-grow flex flex-col justify-start gap-2.5">
+                <div>
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-0.5 flex items-center gap-1">
+                        <i data-lucide="layout-grid" class="w-4 h-4 text-indigo-400"></i> Dispensador de Fichas
+                    </h2>
+                </div>
+                
+                <!-- Dispensador Estándar (Adición, Sustracción, División y Factorización) -->
+                <div id="dispensador-estandar" class="grid grid-cols-2 gap-2 items-start font-sans">
+                    <!-- Ficha x^3 -->
+                    <button onclick="spawnFicha('x3')" class="p-2.5 bg-slate-950/50 hover:bg-slate-800/80 border border-slate-800 rounded-xl flex flex-col items-center justify-center transition-all group col-span-2">
+                        <div class="ficha-x3-horiz rounded-none flex items-center justify-center text-slate-950 font-extrabold text-xs shadow-md group-hover:scale-105 transition-transform border border-pink-400" style="background-color: rgb(255, 153, 204);">
+                            x³
+                        </div>
+                        <span class="text-[9px] text-pink-300 font-bold mt-1.5">Cúbico</span>
+                    </button>
+
+                    <!-- Ficha x^2 Cuadrática -->
+                    <button onclick="spawnFicha('x2')" class="p-2.5 bg-slate-950/50 hover:bg-slate-800/80 border border-slate-800 rounded-xl flex flex-col items-center justify-center transition-all group">
+                        <div class="ficha-x2-cuadrada rounded-none flex items-center justify-center text-slate-950 font-extrabold text-xs shadow-md group-hover:scale-105 transition-transform border border-blue-400" style="background-color: rgb(0, 153, 255);">
+                            x²
+                        </div>
+                        <span class="text-[9px] text-blue-300 font-bold mt-1.5">Cuadrático</span>
+                    </button>
+
+                    <!-- Ficha x^2 Rectangular -->
+                    <button onclick="spawnFicha('x2_rect')" class="p-2.5 bg-slate-950/50 hover:bg-slate-800/80 border border-slate-800 rounded-xl flex flex-col items-center justify-center transition-all group" title="Término cuadrático rectangular">
+                        <div class="ficha-x2-rect-horiz rounded-none flex items-center justify-center text-slate-950 font-extrabold text-xs shadow-md group-hover:scale-105 transition-transform border border-blue-400" style="background-color: rgb(0, 153, 255);">
+                            x²
+                        </div>
+                        <span class="text-[9px] text-blue-300 font-bold mt-1.5">Cuadrático Rectangular</span>
+                    </button>
+
+                    <!-- Ficha x -->
+                    <button onclick="spawnFicha('x')" class="p-2.5 bg-slate-950/50 hover:bg-slate-800/80 border border-slate-800 rounded-xl flex flex-col items-center justify-center transition-all group">
+                        <div class="ficha-x-horiz rounded-none flex items-center justify-center text-slate-950 font-extrabold text-xs shadow-md group-hover:scale-105 transition-transform border border-emerald-600" style="background-color: rgb(34, 197, 94);">
+                            x
+                        </div>
+                        <span class="text-[9px] text-emerald-400 font-bold mt-1.5">Lineal</span>
+                    </button>
+
+                    <!-- Ficha 1 -->
+                    <button onclick="spawnFicha('1')" class="p-2.5 bg-slate-950/50 hover:bg-slate-800/80 border border-slate-800 rounded-xl flex flex-col items-center justify-center transition-all group">
+                        <div class="ficha-1 rounded-none flex items-center justify-center text-slate-950 font-extrabold text-xs shadow-md group-hover:scale-105 transition-transform border border-amber-400" style="background-color: rgb(255, 215, 0);">
+                            1
+                        </div>
+                        <span class="text-[9px] text-amber-300 font-bold mt-1.5">Unidad</span>
+                    </button>
+                </div>
+
+                <!-- Dispensador Especial de Factores para Multiplicación y División -->
+                <div id="dispensador-multiplicacion" class="hidden flex-col gap-3 font-sans">
+                    <div class="bg-indigo-950/40 p-2.5 rounded-xl border border-indigo-900/40">
+                        <p id="label-eje-base-horizontal" class="text-[9px] font-bold text-indigo-300 uppercase mb-1.5">P(x) - Factor Base:</p>
+                        <div class="grid grid-cols-4 gap-1">
+                            <button onclick="spawnFactor('P', 'x2')" class="py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[9px] font-bold">x² (+)</button>
+                            <button onclick="spawnFactor('P', '-x2')" class="py-1 bg-blue-800 hover:bg-blue-700 text-white rounded-lg text-[9px] font-bold">x² (-)</button>
+                            <button onclick="spawnFactor('P', 'x')" class="py-1 bg-emerald-600 hover:bg-emerald-500 text-slate-950 rounded-lg text-[9px] font-bold">x (+)</button>
+                            <button onclick="spawnFactor('P', '-x')" class="py-1 bg-emerald-800 hover:bg-emerald-700 text-white rounded-lg text-[9px] font-bold">x (-)</button>
+                            <button onclick="spawnFactor('P', '1')" class="py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg text-[9px] font-bold col-span-2">1 (+)</button>
+                            <button onclick="spawnFactor('P', '-1')" class="py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[9px] font-bold col-span-2">-1 (-)</button>
+                        </div>
+                    </div>
+
+                    <!-- Eje Vertical Q(x) -->
+                    <div id="dispensador-eje-vertical-altura" class="bg-slate-900/50 p-2.5 rounded-xl border border-slate-850">
+                        <p class="text-[9px] font-bold text-slate-300 uppercase mb-1.5">Q(x) - Factor Altura:</p>
+                        <div class="grid grid-cols-4 gap-1">
+                            <button onclick="spawnFactor('Q', 'x2')" class="py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[9px] font-bold">x² (+)</button>
+                            <button onclick="spawnFactor('Q', '-x2')" class="py-1 bg-blue-800 hover:bg-blue-700 text-white rounded-lg text-[9px] font-bold">x² (-)</button>
+                            <button onclick="spawnFactor('Q', 'x')" class="py-1 bg-emerald-600 hover:bg-emerald-500 text-slate-950 rounded-lg text-[9px] font-bold">x (+)</button>
+                            <button onclick="spawnFactor('Q', '-x')" class="py-1 bg-emerald-800 hover:bg-emerald-700 text-white rounded-lg text-[9px] font-bold">x (-)</button>
+                            <button onclick="spawnFactor('Q', '1')" class="py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg text-[9px] font-bold col-span-2">1 (+)</button>
+                            <button onclick="spawnFactor('Q', '-1')" class="py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[9px] font-bold col-span-2">-1 (-)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Panel Derecho: Tablero de Juego Principal Maximizado (8 Cols) - Alturas Calibradas para Evitar Scroll -->
+        <section class="lg:col-span-8 flex flex-col gap-3.5">
+            
+            <!-- Contenedor Unificado de Banners Dinámicos (Sincronizado y Compacto) -->
+            <div id="monitor-operaciones" class="flex flex-col gap-2 font-sans shrink-0">
+                <!-- Se inyecta la plantilla de banners correspondiente de forma reactiva -->
+            </div>
+
+            <!-- El Tablero Cartesiano de Ubicación Libre con Altura Reducida (380px) para encajar en portátiles -->
+            <div id="tablero-cartesiano" class="bg-slate-900/40 p-4 rounded-2xl border-4 border-slate-800 relative aspect-[16/9] w-full min-h-[360px] lg:min-h-[380px] flex flex-col justify-between overflow-hidden shadow-2xl backdrop-blur-sm font-sans shrink">
+                
+                <!-- Leyendas de Ejes Modernizadas -->
+                <div class="absolute top-2.5 left-1/2 -translate-x-1/2 z-20 bg-slate-950 border border-slate-800 text-slate-300 px-3 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest shadow-md">Superior P(x)</div>
+                <div class="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-20 bg-slate-950 border border-slate-800 text-slate-300 px-3 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest shadow-md">Inferior Q(x)</div>
+                <div class="absolute left-3 top-1/2 -translate-y-1/2 z-20 bg-slate-950 border border-slate-800 text-slate-300 px-3 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest rotate-90 origin-left shadow-md">Izquierda (-)</div>
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 z-20 bg-slate-950 border border-slate-800 text-slate-300 px-3 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest -rotate-90 origin-right shadow-md">Derecha (+)</div>
+
+                <!-- Eje Vertical (Y) con efecto neón -->
+                <div class="absolute left-1/2 top-0 bottom-1/2 w-1.5 bg-gradient-to-b from-blue-500 to-blue-600 z-0 -translate-x-1/2 eje-neon-azul"></div>
+                <div class="absolute left-1/2 top-1/2 bottom-0 w-1.5 bg-gradient-to-b from-red-500 to-red-600 z-0 -translate-x-1/2 eje-neon-rojo"></div>
+
+                <!-- Eje Horizontal (X) con efecto neón -->
+                <div class="absolute top-1/2 left-0 right-1/2 h-1.5 bg-gradient-to-r from-red-600 to-red-500 z-0 -translate-y-1/2 eje-neon-rojo"></div>
+                <div class="absolute top-1/2 left-1/2 right-0 h-1.5 bg-gradient-to-r from-blue-500 to-blue-600 z-0 -translate-y-1/2 eje-neon-azul"></div>
+
+                <!-- GUIAS DE FACTORES EN LOS EJES -->
+                <div id="guia-eje-x-neg" class="hidden absolute left-4 right-1/2 h-12 top-1/2 -translate-y-1/2 z-35 bg-slate-900/90 border-2 border-dashed border-red-500/40 rounded-none flex items-center justify-end px-3 gap-1.5 overflow-x-auto">
+                    <span id="label-factor-x-neg" class="text-[8px] font-black text-red-400 absolute left-2 top-0.5">P(x) (-)</span>
+                </div>
+                <div id="guia-eje-x-pos" class="hidden absolute left-1/2 right-4 h-12 top-1/2 -translate-y-1/2 z-35 bg-slate-900/90 border-2 border-dashed border-blue-500/40 rounded-none flex items-center justify-start px-3 gap-1.5 overflow-x-auto">
+                    <span id="label-factor-x-pos" class="text-[8px] font-black text-blue-400 absolute right-2 top-0.5">P(x) (+)</span>
+                </div>
+                <!-- Eje Vertical: Factor Altura Q(x) -->
+                <div id="guia-eje-y-pos" class="hidden absolute top-4 bottom-1/2 w-12 left-1/2 -translate-x-1/2 z-35 bg-slate-900/90 border-2 border-dashed border-blue-500/40 rounded-none flex flex-col items-center justify-end py-3 gap-1.5 overflow-y-auto">
+                    <span class="text-[8px] font-black text-blue-400 absolute top-0.5">Q(x) (+)</span>
+                </div>
+                <div id="guia-eje-y-neg" class="hidden absolute top-1/2 bottom-4 w-12 left-1/2 -translate-x-1/2 z-35 bg-slate-900/90 border-2 border-dashed border-red-500/40 rounded-none flex flex-col items-center justify-start py-3 gap-1.5 overflow-y-auto">
+                    <span class="text-[8px] font-black text-red-400 absolute bottom-0.5">Q(x) (-)</span>
+                </div>
+
+                <!-- Cuadrícula de Trabajo de 4 Sectores -->
+                <div class="grid grid-cols-2 grid-rows-2 h-full w-full gap-2.5 z-10">
+                    
+                    <!-- Cuadrante II (Superior Izquierdo) -->
+                    <div id="c-sup-izq" ondragover="permitirDrop(event)" ondrop="soltarFicha(event, 'sup-izq')" class="cuadrante-zona border-2 border-dashed border-red-900/30 hover:border-red-500/40 rounded-2xl p-4 flex items-center justify-center relative bg-slate-950/30 shadow-inner">
+                        <span class="text-red-500 font-black text-2xl select-none opacity-10 absolute">(-)</span>
+                    </div>
+
+                    <!-- Cuadrante I (Superior Derecho) -->
+                    <div id="c-sup-der" ondragover="permitirDrop(event)" ondrop="soltarFicha(event, 'sup-der')" class="cuadrante-zona border-2 border-dashed border-blue-900/30 hover:border-blue-500/40 rounded-2xl p-4 flex items-center justify-center relative bg-slate-950/30 shadow-inner">
+                        <span class="text-blue-500 font-black text-2xl select-none opacity-10 absolute">(+)</span>
+                    </div>
+
+                    <!-- Cuadrante III (Inferior Izquierdo) -->
+                    <div id="c-inf-izq" ondragover="permitirDrop(event)" ondrop="soltarFicha(event, 'inf-izq')" class="cuadrante-zona border-2 border-dashed border-blue-900/30 hover:border-blue-500/40 rounded-2xl p-4 flex items-center justify-center relative bg-slate-950/30 shadow-inner">
+                        <span class="text-blue-500 font-black text-2xl select-none opacity-10 absolute">(+)</span>
+                    </div>
+
+                    <!-- Cuadrante IV (Inferior Derecho) -->
+                    <div id="c-inf-der" ondragover="permitirDrop(event)" ondrop="soltarFicha(event, 'inf-der')" class="cuadrante-zona border-2 border-dashed border-red-900/30 hover:border-red-500/40 rounded-2xl p-4 flex items-center justify-center relative bg-slate-950/30 shadow-inner">
+                        <span class="text-red-500 font-black text-2xl select-none opacity-10 absolute">(-)</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Caja de Herramientas y Acciones colocada debajo del tablero cartesiano con Altura Compacta -->
+            <div id="card-operacion-acciones" class="bg-slate-900/60 p-3 rounded-2xl shadow-lg border border-slate-800 backdrop-blur-sm flex flex-col gap-1.5 shrink-0">
+                
+                <!-- Matriz Horizontal espaciosa de 3 columnas para alinear perfectamente los botones -->
+                <div class="grid grid-cols-3 gap-2.5 w-full items-start">
+                    
+                    <!-- Columna 1: Acción / Cambiar en Diagonal o Distribuir Fichas -->
+                    <div class="flex flex-col gap-2 w-full">
+                        <!-- Botón Dinámico Principal -->
+                        <button onclick="ejecutarPasoEspecial()" id="btn-accion-operacion" class="w-full flex flex-col md:flex-row items-center justify-center gap-1.5 py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/20 text-xs transition-all border border-indigo-500/30">
+                            <i id="icon-accion-operacion" data-lucide="shuffle" class="w-3.5 h-3.5 shrink-0"></i> 
+                            <span id="label-accion-operacion" class="text-center leading-tight">Cambiar en Diagonal</span>
+                        </button>
+                        <!-- Botón Extra Magenta Exclusivo para Cruzar en Diagonal en Multiplicación -->
+                        <button onclick="cruzarDiagonalmente()" id="btn-cruzar-multiplicacion" class="hidden w-full flex flex-col md:flex-row items-center justify-center gap-1.5 py-2 px-3 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-xl shadow-lg shadow-pink-900/20 text-xs transition-all border border-pink-500/30 font-sans">
+                            <i data-lucide="shuffle" class="w-3.5 h-3.5 shrink-0"></i> 
+                            <span class="text-center leading-tight">Distribuir Fichas</span>
+                        </button>
+                    </div>
+
+                    <!-- Columna 2: Simplificar / Ver Resultado -->
+                    <div class="flex flex-col gap-2 w-full">
+                        <!-- Simplificar semejantes opuestos -->
+                        <button onclick="eliminarSemejantesOpuestos()" id="btn-simplificar-opuestos" class="w-full flex flex-col md:flex-row items-center justify-center gap-1.5 py-2 px-3 bg-rose-500/10 hover:bg-rose-500/20 active:bg-rose-500/30 text-rose-400 font-bold rounded-xl border border-rose-500/20 text-xs transition-all shadow-sm">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 shrink-0"></i> 
+                            <span class="text-center leading-tight">Simplificar</span>
+                        </button>
+                        <!-- Botón Extra: Ver resultado (División y Factorización) -->
+                        <button onclick="mostrarResultadoOperacion()" id="btn-ver-resultado-div" class="hidden w-full flex flex-col md:flex-row items-center justify-center gap-1.5 py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold rounded-xl shadow-lg shadow-emerald-900/20 text-xs transition-all border border-emerald-500/30 font-sans">
+                            <i data-lucide="check-square" class="w-3.5 h-3.5 shrink-0"></i> 
+                            <span class="text-center leading-tight">Ver resultado</span>
+                        </button>
+                    </div>
+
+                    <!-- Columna 3: Reiniciar Tablero -->
+                    <div class="w-full">
+                        <button onclick="limpiarTablero()" id="btn-reiniciar-tablero" class="w-full flex flex-col md:flex-row items-center justify-center gap-1.5 py-2 px-3 bg-slate-800 hover:bg-slate-750 text-slate-300 font-bold rounded-xl text-xs transition-all border border-slate-700/50">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5 shrink-0"></i> 
+                            <span class="text-center leading-tight">Reiniciar Tablero</span>
+                        </button>
+                    </div>
+                    
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Pie de Página -->
+    <footer class="bg-slate-950 text-slate-500 text-center py-2.5 text-xs border-t border-slate-900 font-sans shrink-0">
+        <p>© 2026 Universidad de Caldas - Proyecto REDEMAT. Innovación Didáctica para Matemáticas Universitarias.</p>
+    </footer>
+
+    <!-- Lógica de Simulación Modular Completa -->
+    <script>
+        // Configuración y Estado del Sistema
+        let idFichaSeq = 0;
+        let modoActual = 'adicion'; // 'adicion', 'sustraccion', 'multiplicacion', 'division' o 'factorizacion'
+        let paginaActual = 'modulo-estandar'; // 'modulo-estandar', 'modulo-multiplicacion', 'modulo-division' o 'modulo-factorizacion'
+
+        // Estructura de datos de fichas en memoria para cálculo matemático
+        let fichas = []; // { id, tipo, cuadrante, x, y, rotada }
+
+        // Estructuras de factores para Multiplicación, División y Factorización
+        let factoresP = []; // Elementos en eje X (Base): { id, tipo, signo }
+        let factoresQ = []; // Elementos en eje Y (Altura): { id, tipo, signo }
+
+        // Memoria del resultado calculado en la División y Factorización
+        let resultadoDivisionPendiente = null;
+        let resultadoFactorizacionPendiente = "";
+
+        // ESTADOS DE CONTROL DE FLUJO DIDÁCTICO PEDIDO POR EL USUARIO
+        let formulaPEstática = null; // Guarda p(x) capturado al dar clic en Cruzar/Mover
+        let formulaQEstática = null; // Guarda q(x) capturado al dar clic en Cruzar/Mover
+        let operacionEjecutada = false; // Indica si se dio clic en Cruzar o Mover para bloquear el resultado provisional
+        let simplificacionRealizada = false; // Indica si se ha realizado la simplificación de opuestos
+        let multiplicacionGenerada = false; // Indica si se generó la multiplicación para ocultar el resultado hasta Simplificar
+        let divisionComprobada = false; // Indica si se dio clic en "Ver resultado" de la división
+        let factorizacionEjecutada = false; // Indica si se dio clic en Ejecutar Factorización para congelar el banner P(x)
+        let formulaPFactorizacionEstática = null; // Guarda P(x) capturado al dar clic en Ejecutar Factorización
+
+        // Inicialización de Lucide Icons y Banners
+        window.onload = function() {
+            lucide.createIcons();
+            construirEstructuraBanners();
+            actualizarLecturaPolinomio();
+            
+            document.addEventListener('fullscreenchange', actualizarUIFullscreen);
+            document.addEventListener('webkitfullscreenchange', actualizarUIFullscreen);
+            document.addEventListener('mozfullscreenchange', actualizarUIFullscreen);
+            document.addEventListener('MSFullscreenChange', actualizarUIFullscreen);
+        };
+
+        // Alternar modo de pantalla completa
+        function toggleFullscreen() {
+            try {
+                const doc = window.document;
+                const docEl = doc.documentElement;
+
+                const requestFullscreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+                const exitFullscreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+                const isFullscreen = doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement;
+
+                if (!isFullscreen) {
+                    if (requestFullscreen) {
+                        requestFullscreen.call(docEl).catch(err => {
+                            mostrarToast("La pantalla completa está bloqueada por las políticas del entorno.");
+                        });
+                    } else {
+                        mostrarToast("Su navegador no soporta la pantalla completa.");
+                    }
+                } else {
+                    if (exitFullscreen) {
+                        exitFullscreen.call(doc);
+                    }
+                }
+            } catch (e) {
+                mostrarToast("Error al intentar alternar el modo de pantalla completa.");
+            }
+        }
+
+        // Sincronizar UI del botón de pantalla completa
+        function actualizarUIFullscreen() {
+            const maxIcon = document.getElementById('fullscreen-maximize-icon');
+            const minIcon = document.getElementById('fullscreen-minimize-icon');
+            const text = document.getElementById('fullscreen-text');
+            
+            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullscreenElement || document.msFullscreenElement;
+            
+            if (isFullscreen) {
+                if (maxIcon) maxIcon.classList.add('hidden');
+                if (minIcon) minIcon.classList.remove('hidden');
+                if (text) text.innerText = "Salir de Pantalla Completa";
+            } else {
+                if (maxIcon) maxIcon.classList.remove('hidden');
+                if (minIcon) minIcon.classList.add('hidden');
+                if (text) text.innerText = "Pantalla Completa";
+            }
+        }
+
+        // Determinación de grados algebraicos de factores
+        function getGradoFactor(tipo) {
+            if (tipo === 'x2') return 2;
+            if (tipo === 'x') return 1;
+            return 0; // Constante '1'
+        }
+
+        // --- SISTEMA DE INYECCIÓN DE BANNERS ORIGINALES ---
+        function construirEstructuraBanners() {
+            const container = document.getElementById('monitor-operaciones');
+            if (!container) return;
+            container.innerHTML = ""; // Vaciar anterior
+
+            if (paginaActual === 'modulo-estandar') {
+                container.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="bg-slate-900 border border-slate-800 text-white p-3 rounded-2xl shadow-xl flex flex-col justify-center">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Polinomio P(x) (Superior)</span>
+                            <div class="text-sm md:text-base font-mono font-black text-yellow-300 tracking-wide" id="formula-p">P(x) = 0</div>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800 text-white p-3 rounded-2xl shadow-xl flex flex-col justify-center">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Polinomio Q(x) (Inferior)</span>
+                            <div class="text-sm md:text-base font-mono font-black text-rose-300 tracking-wide" id="formula-q">Q(x) = 0</div>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800 text-white p-3 rounded-2xl shadow-xl flex flex-col justify-center">
+                            <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider block mb-0.5" id="label-resultado-modulo1">Resultado: P(x) + Q(x)</span>
+                            <div class="text-sm md:text-base font-mono font-black text-emerald-400 tracking-wide" id="resultado-m1">Esperando simplificación...</div>
+                        </div>
+                    </div>
+                `;
+            } else if (paginaActual === 'modulo-multiplicacion') {
+                container.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="bg-slate-900 border border-slate-800 text-white p-3 rounded-2xl shadow-xl flex flex-col justify-center">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Factor Base P(x) (Eje X)</span>
+                            <div class="text-sm md:text-base font-mono font-black text-yellow-300 tracking-wide" id="factor-base-p">P(x) = 0</div>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800 text-white p-3 rounded-2xl shadow-xl flex flex-col justify-center">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Factor Altura Q(x) (Eje Y)</span>
+                            <div class="text-sm md:text-base font-mono font-black text-rose-300 tracking-wide" id="factor-altura-q">Q(x) = 0</div>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800 text-white p-3 rounded-2xl shadow-xl flex flex-col justify-center">
+                            <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider block mb-0.5">Área P(x) * Q(x) (Mosaico)</span>
+                            <div class="text-sm md:text-base font-mono font-black text-emerald-400 tracking-wide" id="area-m2">0</div>
+                        </div>
+                    </div>
+                `;
+            } else if (paginaActual === 'modulo-division') {
+                container.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <div class="bg-slate-900 border border-slate-800 text-white p-3 rounded-2xl shadow-xl flex flex-col justify-center">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Dividendo P(x) (Cuadrantes)</span>
+                            <div class="text-sm md:text-base font-mono font-black text-yellow-300 tracking-wide" id="dividendo-p">P(x) = 0</div>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800 text-white p-4 rounded-2xl shadow-xl flex flex-col justify-center">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Divisor Q(x) (Eje X)</span>
+                            <div class="text-sm md:text-base font-mono font-black text-rose-300 tracking-wide" id="divisor-q">Q(x) = 0</div>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800 text-white p-3 rounded-2xl shadow-xl flex flex-col justify-center">
+                            <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider block mb-0.5">Cociente C(x)</span>
+                            <div class="text-sm md:text-base font-mono font-black text-emerald-400 tracking-wide" id="cociente-c">C(x) = 0</div>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800 text-white p-3 rounded-2xl shadow-xl flex flex-col justify-center">
+                            <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider block mb-0.5">Residuo R(x)</span>
+                            <div class="text-sm md:text-base font-mono font-black text-amber-400 tracking-wide" id="residuo-r">R(x) = 0</div>
+                        </div>
+                    </div>
+                `;
+            } else if (paginaActual === 'modulo-factorizacion') {
+                container.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="bg-slate-900 border border-slate-800 text-white p-3.5 rounded-2xl shadow-xl flex flex-col justify-center">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Polinomio P(x) (Cuadrantes)</span>
+                            <div class="text-sm md:text-base font-mono font-black text-yellow-300 tracking-wide" id="factorizar-p">P(x) = 0</div>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800 text-white p-3.5 rounded-2xl shadow-xl flex flex-col justify-center">
+                            <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider block mb-0.5">Factores Obtenidos</span>
+                            <div class="text-sm md:text-base font-mono font-black text-emerald-400 tracking-wide" id="factores-resultado">Esperando factorización...</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Sistema de Navegación Modular Superior (4 Módulos)
+        function cambiarPagina(paginaId) {
+            paginaActual = paginaId;
+            
+            // Limpieza de estados de flujo didáctico al cambiar de pestaña
+            formulaPEstática = null;
+            formulaQEstática = null;
+            operacionEjecutada = false;
+            simplificacionRealizada = false;
+            multiplicacionGenerada = false;
+            divisionComprobada = false;
+            factorizacionEjecutada = false;
+            formulaPFactorizacionEstática = null;
+
+            const tabEstandar = document.getElementById('tab-modulo-estandar');
+            const tabMulti = document.getElementById('tab-modulo-multiplicacion');
+            const tabDiv = document.getElementById('tab-modulo-division');
+            const tabFact = document.getElementById('tab-modulo-factorizacion');
+            
+            const tabs = [tabEstandar, tabMulti, tabDiv, tabFact];
+            tabs.forEach(tab => {
+                if (tab) tab.className = "py-2.5 px-4 font-bold text-xs border-b-4 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-all";
+            });
+
+            const panelEstandar = document.getElementById('card-operacion-estandar');
+            const panelMulti = document.getElementById('card-operacion-multiplicacion');
+            const panelDiv = document.getElementById('card-operacion-division');
+            const panelFact = document.getElementById('card-operacion-factorizacion');
+
+            const dispEjeVertical = document.getElementById('dispensador-eje-vertical-altura');
+            const labelEjeBase = document.getElementById('label-eje-base-horizontal');
+            const labelFactorXNeg = document.getElementById('label-factor-x-neg');
+            const labelFactorXPos = document.getElementById('label-factor-x-pos');
+
+            if (paginaId === 'modulo-estandar') {
+                tabEstandar.className = "py-2.5 px-4 font-bold text-xs border-b-4 border-indigo-500 text-indigo-400 flex items-center gap-1.5 transition-all";
+                panelEstandar.className = "bg-slate-900/60 p-4 rounded-2xl shadow-lg border border-slate-800 backdrop-blur-sm transition-all";
+                panelMulti.className = "hidden";
+                panelDiv.className = "hidden";
+                panelFact.className = "hidden";
+                setModo('adicion');
+            } else if (paginaId === 'modulo-multiplicacion') {
+                tabMulti.className = "py-2.5 px-4 font-bold text-xs border-b-4 border-indigo-500 text-indigo-400 flex items-center gap-1.5 transition-all";
+                panelEstandar.className = "hidden";
+                panelMulti.className = "bg-slate-900/60 p-4 rounded-2xl shadow-lg border border-slate-800 backdrop-blur-sm transition-all";
+                panelDiv.className = "hidden";
+                panelFact.className = "hidden";
+                
+                if (dispEjeVertical) dispEjeVertical.className = "bg-slate-900/50 p-2.5 rounded-xl border border-slate-850";
+                if (labelEjeBase) labelEjeBase.innerText = "P(x) - Factor Base (Eje Horizontal):";
+                if (labelFactorXNeg) labelFactorXNeg.innerText = "P(x) (-)";
+                if (labelFactorXPos) labelFactorXPos.innerText = "P(x) (+)";
+                
+                setModo('multiplicacion');
+            } else if (paginaId === 'modulo-division') {
+                tabDiv.className = "py-2.5 px-4 font-bold text-xs border-b-4 border-indigo-500 text-indigo-400 flex items-center gap-1.5 transition-all";
+                panelEstandar.className = "hidden";
+                panelMulti.className = "hidden";
+                panelDiv.className = "bg-slate-900/60 p-4 rounded-2xl shadow-lg border border-slate-800 backdrop-blur-sm transition-all";
+                panelFact.className = "hidden";
+
+                if (dispEjeVertical) dispEjeVertical.className = "hidden";
+                if (labelEjeBase) labelEjeBase.innerText = "Q(x) - Divisor (Eje Horizontal):";
+                if (labelFactorXNeg) labelFactorXNeg.innerText = "Q(x) (-)";
+                if (labelFactorXPos) labelFactorXPos.innerText = "Q(x) (+)";
+
+                setModo('division');
+            } else if (paginaId === 'modulo-factorizacion') {
+                tabFact.className = "py-2.5 px-4 font-bold text-xs border-b-4 border-indigo-500 text-indigo-400 flex items-center gap-1.5 transition-all";
+                panelEstandar.className = "hidden";
+                panelMulti.className = "hidden";
+                panelDiv.className = "hidden";
+                panelFact.className = "bg-slate-900/60 p-4 rounded-2xl shadow-lg border border-slate-800 backdrop-blur-sm transition-all";
+
+                if (dispEjeVertical) dispEjeVertical.className = "hidden";
+
+                setModo('factorizacion');
+            }
+
+            construirEstructuraBanners();
+            actualizarLecturaPolinomio();
+        }
+
+        // Configurar el modo de operación interna con reactividad selectiva (Modificado para remover asignaciones de texto descriptivo del dispensador)
+        function setModo(modo) {
+            modoActual = modo;
+            
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.className = "mode-btn flex items-center justify-center gap-1 py-2 px-3 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-400 hover:bg-slate-700";
+            });
+
+            const btnActivo = document.getElementById(`btn-${modo}`);
+            if (btnActivo) {
+                btnActivo.className = "mode-btn flex items-center justify-center gap-1 py-2 px-3 rounded-xl text-xs font-bold transition-all bg-indigo-600 text-white shadow-md shadow-indigo-500/20";
+            }
+
+            const dispEstandar = document.getElementById('dispensador-estandar');
+            const dispMulti = document.getElementById('dispensador-multiplicacion');
+            
+            // Referencias a los botones de acción del tablero
+            const btnAccionOperacion = document.getElementById('btn-accion-operacion');
+            const labelAccionOperacion = document.getElementById('label-accion-operacion');
+            const btnCruzarMulti = document.getElementById('btn-cruzar-multiplicacion');
+            const btnSimplificar = document.getElementById('btn-simplificar-opuestos');
+            const btnVerResultado = document.getElementById('btn-ver-resultado-div');
+
+            const guiasEjes = [
+                document.getElementById('guia-eje-x-neg'),
+                document.getElementById('guia-eje-x-pos'),
+                document.getElementById('guia-eje-y-pos'),
+                document.getElementById('guia-eje-y-neg')
+            ];
+
+            if (modo === 'adicion') {
+                if (btnAccionOperacion) {
+                    btnAccionOperacion.classList.remove('hidden');
+                    if (labelAccionOperacion) labelAccionOperacion.innerText = "Cambiar en Diagonal";
+                }
+                if (btnCruzarMulti) btnCruzarMulti.classList.add('hidden');
+                if (dispEstandar) dispEstandar.className = "grid grid-cols-2 gap-2 items-start";
+                if (dispMulti) dispMulti.className = "hidden";
+                if (btnSimplificar) btnSimplificar.classList.remove('hidden');
+                if (btnVerResultado) btnVerResultado.classList.add('hidden');
+                guiasEjes.forEach(eje => { if (eje) eje.className = "hidden"; });
+                
+                const descElem = document.getElementById('modo-descripcion');
+                if (descElem) descElem.innerText = 'Regla de Adición: Ubica el polinomio P(x) arriba y Q(x) abajo. Luego haz clic en "Cruzar en Diagonal" para llevar las fichas de abajo hacia arriba. Finalmente, da clic en "Simplificar" para ver su suma.';
+
+                const labelRes = document.getElementById('label-resultado-modulo1');
+                if (labelRes) labelRes.innerText = "Resultado: P(x) + Q(x)";
+            } else if (modo === 'sustraccion') {
+                if (btnAccionOperacion) {
+                    btnAccionOperacion.classList.remove('hidden');
+                    if (labelAccionOperacion) labelAccionOperacion.innerText = "Subir Verticalmente";
+                }
+                if (btnCruzarMulti) btnCruzarMulti.classList.add('hidden');
+                if (dispEstandar) dispEstandar.className = "grid grid-cols-2 gap-2 items-start";
+                if (dispMulti) dispMulti.className = "hidden";
+                if (btnSimplificar) btnSimplificar.classList.remove('hidden');
+                if (btnVerResultado) btnVerResultado.classList.add('hidden');
+                guiasEjes.forEach(eje => { if (eje) eje.className = "hidden"; });
+
+                const descElem = document.getElementById('modo-descripcion');
+                if (descElem) descElem.innerText = 'Regla de Sustracción: Ubica el polinomio P(x) arriba y Q(x) abajo. Luego haz clic en "Subir Verticalmente" para llevar las fichas de abajo hacia arriba. Finalmente, da clic en "Simplificar" para ver su resta.';
+
+                const labelRes = document.getElementById('label-resultado-modulo1');
+                if (labelRes) labelRes.innerText = "Resultado: P(x) - Q(x)";
+            } else if (modo === 'multiplicacion') {
+                if (btnAccionOperacion) {
+                    btnAccionOperacion.classList.remove('hidden');
+                    if (labelAccionOperacion) labelAccionOperacion.innerText = "Generar Intersección";
+                }
+                if (btnCruzarMulti) btnCruzarMulti.classList.remove('hidden');
+                if (dispEstandar) dispEstandar.className = "hidden";
+                if (dispMulti) dispMulti.className = "flex flex-col gap-3 font-sans";
+                if (btnSimplificar) btnSimplificar.classList.remove('hidden');
+                if (btnVerResultado) btnVerResultado.classList.add('hidden');
+                
+                const gXNeg = document.getElementById('guia-eje-x-neg');
+                const gXPos = document.getElementById('guia-eje-x-pos');
+                const gYPos = document.getElementById('guia-eje-y-pos');
+                const gYNeg = document.getElementById('guia-eje-y-neg');
+
+                if (gXNeg) gXNeg.className = "absolute left-4 right-1/2 h-12 top-1/2 -translate-y-1/2 z-35 bg-slate-900/90 border-2 border-dashed border-red-500/40 rounded-none flex items-center justify-end px-3 gap-1.5 overflow-x-auto";
+                if (gXPos) gXPos.className = "absolute left-1/2 right-4 h-12 top-1/2 -translate-y-1/2 z-35 bg-slate-900/90 border-2 border-dashed border-blue-500/40 rounded-none flex items-center justify-start px-3 gap-1.5 overflow-x-auto";
+                if (gYPos) gYPos.className = "absolute top-4 bottom-1/2 w-12 left-1/2 -translate-x-1/2 z-35 bg-slate-900/90 border-2 border-dashed border-blue-500/40 rounded-none flex flex-col items-center justify-end py-3 gap-1.5 overflow-y-auto";
+                if (gYNeg) gYNeg.className = "absolute top-1/2 bottom-4 w-12 left-1/2 -translate-x-1/2 z-35 bg-slate-900/90 border-2 border-dashed border-red-500/40 rounded-none flex flex-col items-center justify-start py-3 gap-1.5 overflow-y-auto";
+            } else if (modo === 'division') {
+                if (btnAccionOperacion) {
+                    btnAccionOperacion.classList.remove('hidden');
+                    if (labelAccionOperacion) labelAccionOperacion.innerText = "Ejecutar División";
+                }
+                if (btnCruzarMulti) btnCruzarMulti.classList.add('hidden');
+                if (dispEstandar) dispEstandar.className = "grid grid-cols-2 gap-2 items-start";
+                if (dispMulti) dispMulti.className = "flex flex-col gap-3 font-sans";
+                if (btnSimplificar) btnSimplificar.className = "hidden";
+                if (btnVerResultado) btnVerResultado.classList.remove('hidden'); 
+                
+                const gXNeg = document.getElementById('guia-eje-x-neg');
+                const gXPos = document.getElementById('guia-eje-x-pos');
+                const gYPos = document.getElementById('guia-eje-y-pos');
+                const gYNeg = document.getElementById('guia-eje-y-neg');
+
+                if (gXNeg) gXNeg.className = "absolute left-4 right-1/2 h-12 top-1/2 -translate-y-1/2 z-35 bg-slate-900/90 border-2 border-dashed border-red-500/40 rounded-none flex items-center justify-end px-3 gap-1.5 overflow-x-auto";
+                if (gXPos) gXPos.className = "absolute left-1/2 right-4 h-12 top-1/2 -translate-y-1/2 z-35 bg-slate-900/90 border-2 border-dashed border-blue-500/40 rounded-none flex items-center justify-start px-3 gap-1.5 overflow-x-auto";
+                if (gYPos) gYPos.className = "hidden";
+                if (gYNeg) gYNeg.className = "hidden";
+            } else if (modo === 'factorizacion') {
+                if (btnAccionOperacion) {
+                    btnAccionOperacion.classList.remove('hidden');
+                    if (labelAccionOperacion) labelAccionOperacion.innerText = "Reagrupar Fichas";
+                }
+                if (btnCruzarMulti) btnCruzarMulti.classList.add('hidden');
+                if (dispEstandar) dispEstandar.className = "grid grid-cols-2 gap-2 items-start";
+                if (dispMulti) dispMulti.className = "hidden"; 
+                if (btnSimplificar) btnSimplificar.className = "hidden";
+                if (btnVerResultado) btnVerResultado.classList.remove('hidden'); 
+                guiasEjes.forEach(eje => { if (eje) eje.className = "hidden"; }); 
+            }
+
+            limpiarTablero();
+            actualizarLecturaPolinomio();
+        }
+
+        // Generar una nueva ficha estándar en el tablero
+        function spawnFicha(tipo) {
+            operacionEjecutada = false;
+            simplificacionRealizada = false;
+            factorizacionEjecutada = false;
+            formulaPFactorizacionEstática = null;
+            idFichaSeq++;
+            const id = `ficha-${idFichaSeq}`;
+            const cuadranteDefecto = 'sup-der';
+            
+            const pxX = 40 + Math.random() * 80;
+            const pxY = 40 + Math.random() * 80;
+
+            fichas.push({
+                id: id,
+                tipo: tipo,
+                cuadrante: cuadranteDefecto,
+                x: pxX,
+                y: pxY,
+                rotada: false
+            });
+
+            crearFichaDOM(id, tipo, cuadranteDefecto, pxX, pxY, false);
+            actualizarLecturaPolinomio();
+        }
+
+        // Crear una ficha visual en el tablero (Colores Originales del Proyecto)
+        function crearFichaDOM(id, tipo, cuadranteId, x, y, rotada) {
+            const contenedorDestino = getCuadranteDOM(cuadranteId);
+            if (!contenedorDestino) return;
+
+            let configVisual = {
+                colorBg: 'rgb(255, 215, 0)', // 1 (Oro/Amarillo)
+                colorBorder: 'rgb(215, 175, 0)',
+                sizeClass: 'ficha-1',
+                label: '1',
+                textColor: 'text-slate-950',
+                customClass: '',
+                rotatable: false
+            };
+
+            if (tipo === 'x3') {
+                configVisual = {
+                    colorBg: 'rgb(255, 153, 204)', // x^3 (Rosa)
+                    colorBorder: 'rgb(220, 120, 170)',
+                    sizeClass: rotada ? 'ficha-x3-vert' : 'ficha-x3-horiz',
+                    label: 'x³',
+                    textColor: 'text-slate-950',
+                    customClass: 'ficha-x3-isometric',
+                    rotatable: true
+                };
+            } else if (tipo === 'x2') {
+                configVisual = {
+                    colorBg: 'rgb(0, 153, 255)', // x^2 Cuadrada (Azul)
+                    colorBorder: 'rgb(0, 122, 204)',
+                    sizeClass: 'ficha-x2-cuadrada',
+                    label: 'x²',
+                    textColor: 'text-slate-950',
+                    customClass: '',
+                    rotatable: false
+                };
+            } else if (tipo === 'x2_rect') {
+                configVisual = {
+                    colorBg: 'rgb(0, 153, 255)', // x^2 Rectangular (Azul)
+                    colorBorder: 'rgb(0, 122, 204)',
+                    sizeClass: rotada ? 'ficha-x2-rect-vert' : 'ficha-x2-rect-horiz',
+                    label: 'x²',
+                    textColor: 'text-slate-950',
+                    customClass: '',
+                    rotatable: true
+                };
+            } else if (tipo === 'x') {
+                configVisual = {
+                    colorBg: 'rgb(34, 197, 94)', // x (Verde)
+                    colorBorder: 'rgb(22, 163, 74)',
+                    sizeClass: rotada ? 'ficha-x-vert' : 'ficha-x-horiz',
+                    label: 'x',
+                    textColor: 'text-slate-950',
+                    customClass: '',
+                    rotatable: true
+                };
+            }
+
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = `ficha-drag absolute ${configVisual.sizeClass} border-2 rounded-none font-black text-[10px] md:text-xs flex items-center justify-center shadow-lg select-none z-20 ${configVisual.textColor} ${configVisual.customClass}`;
+            div.style.backgroundColor = configVisual.colorBg;
+            div.style.borderColor = configVisual.colorBorder;
+            div.style.left = `${x}px`;
+            div.style.top = `${y}px`;
+            
+            div.setAttribute('draggable', 'true');
+            
+            const botonRotacion = configVisual.rotatable ? `
+                <button onclick="rotarFicha('${id}', event)" class="absolute -bottom-1.5 -left-1.5 bg-slate-900 border border-slate-700 hover:bg-indigo-600 text-white rounded-none w-5 h-5 flex items-center justify-center shadow-sm transition-all" title="Girar 90 grados">
+                    <svg class="w-3 h-3 text-slate-100" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path>
+                    </svg>
+                </button>
+            ` : '';
+
+            div.innerHTML = `
+                <span>${configVisual.label}</span>
+                ${botonRotacion}
+                <button onclick="eliminarFicha('${id}')" class="absolute -top-1.5 -right-1.5 bg-slate-950/80 hover:bg-red-600 text-white rounded-none w-5 h-5 flex items-center justify-center shadow-sm transition-colors" title="Eliminar ficha">
+                    <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            `;
+
+            div.addEventListener('dragstart', (e) => {
+                const rect = div.getBoundingClientRect();
+                const grabX = e.clientX - rect.left;
+                const grabY = e.clientY - rect.top;
+                
+                e.dataTransfer.setData('text/plain', id);
+                e.dataTransfer.setData('grabX', grabX);
+                e.dataTransfer.setData('grabY', grabY);
+                
+                setTimeout(() => div.classList.add('opacity-40'), 0);
+            });
+
+            div.addEventListener('dragend', () => {
+                div.classList.remove('opacity-40');
+            });
+
+            contenedorDestino.appendChild(div);
+        }
+
+        // Rotar pieza 90 grados (Permite rotar lineales, rectangulares y cúbicas)
+        function rotarFicha(id, event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            
+            const fichaObj = fichas.find(f => f.id === id);
+            if (fichaObj && (fichaObj.tipo === 'x' || fichaObj.tipo === 'x2_rect' || fichaObj.tipo === 'x3')) {
+                fichaObj.rotada = !fichaObj.rotada;
+                
+                const domElem = document.getElementById(id);
+                if (domElem) {
+                    domElem.remove();
+                }
+                crearFichaDOM(fichaObj.id, fichaObj.tipo, fichaObj.cuadrante, fichaObj.x, fichaObj.y, fichaObj.rotada);
+                mostrarToast("Pieza orientada a 90 grados");
+            }
+        }
+
+        // Colocar factores en las guías de los Ejes
+        function spawnFactor(eje, tipoFactor) {
+            idFichaSeq++;
+            const id = `factor-${idFichaSeq}`;
+            const esNegativo = tipoFactor.startsWith('-');
+            const tipoLimpio = esNegativo ? tipoFactor.substring(1) : tipoFactor;
+            const signo = esNegativo ? -1 : 1;
+
+            const factor = { id, tipo: tipoLimpio, signo };
+
+            if (eje === 'P') {
+                factoresP.push(factor);
+            } else {
+                factoresQ.push(factor);
+            }
+
+            renderizarEje(eje);
+            actualizarLecturaPolinomio();
+        }
+
+        // Renderiza los factores en los ejes
+        function renderizarEje(eje) {
+            if (eje === 'P') {
+                factoresP.sort((a, b) => getGradoFactor(b.tipo) - getGradoFactor(a.tipo));
+                
+                document.getElementById('guia-eje-x-neg').querySelectorAll('.mini-factor-card').forEach(e => e.remove());
+                document.getElementById('guia-eje-x-pos').querySelectorAll('.mini-factor-card').forEach(e => e.remove());
+
+                factoresP.forEach(f => {
+                    const esNegativo = f.signo < 0;
+                    const contenedorId = esNegativo ? 'guia-eje-x-neg' : 'guia-eje-x-pos';
+                    const contenedor = document.getElementById(contenedorId);
+                    
+                    if (contenedor) {
+                        let estilo = getMiniEstiloFactor(f.tipo, esNegativo);
+                        const div = document.createElement('div');
+                        div.id = f.id;
+                        div.className = `mini-factor-card flex items-center gap-1.5 px-2.5 py-1 rounded-none text-[10px] font-black border border-slate-700 shadow-sm shrink-0 text-slate-950 z-40`;
+                        div.style.backgroundColor = estilo.color;
+                        div.innerHTML = `
+                            <span>${estilo.label}</span>
+                            <button onclick="eliminarFactor('P', '${f.id}')" class="ml-1 p-0.5 rounded-full hover:bg-black/10 transition-colors flex items-center justify-center" title="Eliminar factor">
+                                <svg class="w-2.5 h-2.5 text-slate-800 hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        `;
+                        contenedor.appendChild(div);
+                    }
+                });
+            } else {
+                let qPosFiltered = factoresQ.filter(f => f.signo > 0).sort((a, b) => getGradoFactor(a.tipo) - getGradoFactor(b.tipo));
+                let qNegFiltered = factoresQ.filter(f => f.signo < 0).sort((a, b) => getGradoFactor(b.tipo) - getGradoFactor(a.tipo));
+
+                document.getElementById('guia-eje-y-pos').querySelectorAll('.mini-factor-card').forEach(e => e.remove());
+                document.getElementById('guia-eje-y-neg').querySelectorAll('.mini-factor-card').forEach(e => e.remove());
+
+                qPosFiltered.forEach(f => {
+                    const contenedor = document.getElementById('guia-eje-y-pos');
+                    if (contenedor) {
+                        let estilo = getMiniEstiloFactor(f.tipo, false);
+                        const div = document.createElement('div');
+                        div.id = f.id;
+                        div.className = `mini-factor-card flex items-center justify-center gap-1 px-1 py-2.5 rounded-none text-[10px] font-black border border-slate-700 shadow-sm shrink-0 text-slate-950 rotate-[-90deg] w-10 h-10 z-40`;
+                        div.style.backgroundColor = estilo.color;
+                        div.innerHTML = `
+                            <span class="text-center block leading-none select-none">${estilo.label}</span>
+                            <button onclick="eliminarFactor('Q', '${f.id}')" class="p-0.5 rounded-full hover:bg-black/10 transition-colors flex items-center justify-center" title="Eliminar factor">
+                                <svg class="w-2.5 h-2.5 text-slate-800 hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        `;
+                        contenedor.appendChild(div);
+                    }
+                });
+
+                qNegFiltered.forEach(f => {
+                    const contenedor = document.getElementById('guia-eje-y-neg');
+                    if (contenedor) {
+                        let estilo = getMiniEstiloFactor(f.tipo, true);
+                        const div = document.createElement('div');
+                        div.id = f.id;
+                        div.className = `mini-factor-card flex items-center justify-center gap-1 px-1 py-2.5 rounded-none text-[10px] font-black border border-slate-700 shadow-sm shrink-0 text-slate-950 rotate-[-90deg] w-10 h-10 z-40`;
+                        div.style.backgroundColor = estilo.color;
+                        div.innerHTML = `
+                            <span class="text-center block leading-none select-none">${estilo.label}</span>
+                            <button onclick="eliminarFactor('Q', '${f.id}')" class="p-0.5 rounded-full hover:bg-black/10 transition-colors flex items-center justify-center" title="Eliminar factor">
+                                <svg class="w-2.5 h-2.5 text-slate-800 hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        `;
+                        contenedor.appendChild(div);
+                    }
+                });
+            }
+        }
+
+        // Retorna la etiqueta limpia del factor con su signo
+        function getMiniEstiloFactor(tipo, esNegativo) {
+            const signoStr = esNegativo ? '(-)' : '(+)';
+            if (tipo === 'x2') return { color: 'rgb(0, 153, 255)', label: `x²${signoStr}` };
+            if (tipo === 'x') return { color: 'rgb(34, 197, 94)', label: `x${signoStr}` };
+            return { color: 'rgb(255, 215, 0)', label: `1${signoStr}` };
+        }
+
+        function eliminarFactor(eje, id) {
+            if (eje === 'P') {
+                factoresP = factoresP.filter(f => f.id !== id);
+            } else {
+                factoresQ = factoresQ.filter(f => f.id !== id);
+            }
+            renderizarEje(eje);
+            actualizarLecturaPolinomio();
+        }
+
+        // Obtener contenedor del cuadrante por ID
+        function getCuadranteDOM(cuadranteId) {
+            switch(cuadranteId) {
+                case 'sup-izq': return document.getElementById('c-sup-izq');
+                case 'sup-der': return document.getElementById('c-sup-der');
+                case 'inf-izq': return document.getElementById('c-inf-izq');
+                case 'inf-der': return document.getElementById('c-inf-der');
+                default: return null;
+            }
+        }
+
+        // Permitir Drop en las áreas correspondientes
+        function permitirDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('cuadrante-activo');
+        }
+
+        // Manejar el soltado con Posicionamiento Libre Absoluto
+        function soltarFicha(e, cuadranteDestinoId) {
+            e.preventDefault();
+            const cuadranteDOM = getCuadranteDOM(cuadranteDestinoId);
+            cuadranteDOM.classList.remove('cuadrante-activo');
+
+            const id = e.dataTransfer.getData('text/plain');
+            const grabX = parseFloat(e.dataTransfer.getData('grabX') || 0);
+            const grabY = parseFloat(e.dataTransfer.getData('grabY') || 0);
+            
+            const fichaElem = document.getElementById(id);
+            if (fichaElem && cuadranteDOM) {
+                const quadRect = cuadranteDOM.getBoundingClientRect();
+                
+                let posX = e.clientX - quadRect.left - grabX;
+                let posY = e.clientY - quadRect.top - grabY;
+
+                const elemRect = fichaElem.getBoundingClientRect();
+                posX = Math.max(2, Math.min(posX, quadRect.width - elemRect.width - 2));
+                posY = Math.max(2, Math.min(posY, quadRect.height - elemRect.height - 2));
+
+                fichaElem.style.left = `${posX}px`;
+                fichaElem.style.top = `${posY}px`;
+
+                cuadranteDOM.appendChild(fichaElem);
+
+                const fichaObj = fichas.find(f => f.id === id);
+                if (fichaObj) {
+                    fichaObj.cuadrante = cuadranteDestinoId;
+                    fichaObj.x = posX;
+                    fichaObj.y = posY;
+                }
+
+                // Cualquier relocalización manual desactiva los bloqueos de banner estáticos
+                operacionEjecutada = false;
+                simplificacionRealizada = false;
+                factorizacionEjecutada = false;
+                formulaPFactorizacionEstática = null;
+
+                actualizarLecturaPolinomio();
+            }
+        }
+
+        // Eliminar elemento del tablero
+        function eliminarFicha(id) {
+            operacionEjecutada = false;
+            simplificacionRealizada = false;
+            factorizacionEjecutada = false;
+            formulaPFactorizacionEstática = null;
+            fichas = fichas.filter(f => f.id !== id);
+            const elem = document.getElementById(id);
+            if (elem) elem.remove();
+            actualizarLecturaPolinomio();
+        }
+
+        // Reiniciar todo
+        function limpiarTablero() {
+            fichas = [];
+            factoresP = [];
+            factoresQ = [];
+            resultadoDivisionPendiente = null;
+            resultadoFactorizacionPendiente = "";
+            
+            // Restablecer estados didácticos de control
+            formulaPEstática = null;
+            formulaQEstática = null;
+            operacionEjecutada = false;
+            simplificacionRealizada = false;
+            multiplicacionGenerada = false;
+            divisionComprobada = false;
+            factorizacionEjecutada = false;
+            formulaPFactorizacionEstática = null;
+
+            document.querySelectorAll('.ficha-drag').forEach(e => e.remove());
+            document.querySelectorAll('.mosaico-rect-contenedor').forEach(e => e.remove());
+
+            document.getElementById('guia-eje-x-neg').querySelectorAll('.mini-factor-card').forEach(e => e.remove());
+            document.getElementById('guia-eje-x-pos').querySelectorAll('.mini-factor-card').forEach(e => e.remove());
+            document.getElementById('guia-eje-y-pos').querySelectorAll('.mini-factor-card').forEach(e => e.remove());
+            document.getElementById('guia-eje-y-neg').querySelectorAll('.mini-factor-card').forEach(e => e.remove());
+
+            actualizarLecturaPolinomio();
+            mostrarToast("Mesa de trabajo limpia por completo.");
+        }
+
+        // Ejecutar los movimientos espaciales según el modo activo
+        function ejecutarPasoEspecial() {
+            if (modoActual === 'adicion') {
+                capturarEcuacionesEstandar();
+                cruzarDiagonalmente();
+            } else if (modoActual === 'sustraccion') {
+                capturarEcuacionesEstandar();
+                moverVerticalmente();
+            } else if (modoActual === 'multiplicacion') {
+                generarRectanguloInterseccion();
+            } else if (modoActual === 'division') {
+                ejecutarDivisionGeometra();
+            } else if (modoActual === 'factorizacion') {
+                ejecutarFactorizacionGeometra();
+            }
+        }
+
+        // Captura las lecturas de P(x) y Q(x) antes de cruzarlas o moverlas para mantenerlas fijas en el banner
+        function capturarEcuacionesEstandar() {
+            let p = { x3: 0, x2: 0, x: 0, const: 0 };
+            let q = { x3: 0, x2: 0, x: 0, const: 0 };
+
+            fichas.forEach(f => {
+                let valor = obtenerValorCuadrante(f.cuadrante);
+                if (f.cuadrante.startsWith('sup')) {
+                    if (f.tipo === 'x3') p.x3 += valor;
+                    if (f.tipo === 'x2' || f.tipo === 'x2_rect') p.x2 += valor;
+                    if (f.tipo === 'x') p.x += valor;
+                    if (f.tipo === '1') p.const += valor;
+                } else {
+                    if (f.tipo === 'x3') q.x3 += valor;
+                    if (f.tipo === 'x2' || f.tipo === 'x2_rect') q.x2 += valor;
+                    if (f.tipo === 'x') q.x += valor;
+                    if (f.tipo === '1') q.const += valor;
+                }
+            });
+
+            formulaPEstática = construirPolinomioString(p);
+            formulaQEstática = construirPolinomioString(q);
+            operacionEjecutada = true; // Se bloquea el cómputo automático del banner resultado
+            simplificacionRealizada = false;
+        }
+
+        // Desplaza de abajo a arriba cruzando diagonales (Lógica de Adición y de liberación en Multiplicación)
+        function cruzarDiagonalmente() {
+            let movidas = 0;
+            const tieneMosaico = document.querySelectorAll('.mosaico-rect-contenedor').length > 0;
+
+            fichas.forEach(ficha => {
+                if (ficha.cuadrante === 'inf-izq') {
+                    ficha.cuadrante = 'sup-der'; 
+                    movidas++;
+                } else if (ficha.cuadrante === 'inf-der') {
+                    ficha.cuadrante = 'sup-izq'; 
+                    movidas++;
+                }
+            });
+
+            if (movidas > 0 || (modoActual === 'multiplicacion' && tieneMosaico)) {
+                // Eliminar el contenedor estático y reconstruir todas las baldosas como arrastrables independientes
+                document.querySelectorAll('.mosaico-rect-contenedor').forEach(e => e.remove());
+                document.querySelectorAll('.ficha-drag').forEach(e => e.remove());
+
+                fichas.forEach(ficha => {
+                    crearFichaDOM(ficha.id, ficha.tipo, ficha.cuadrante, ficha.x, ficha.y, ficha.rotada);
+                });
+
+                if (movidas > 0) {
+                    mostrarToast("¡Diagonal completada! Las fichas inferiores se cruzaron arriba.");
+                } else {
+                    mostrarToast("Se han liberado las fichas del mosaico para su simplificación.");
+                }
+                actualizarLecturaPolinomio();
+            } else {
+                mostrarToast("No hay fichas inferiores para cruzar.");
+            }
+        }
+
+        // Desplaza verticalmente de abajo a arriba (Lógica de Sustracción)
+        function moverVerticalmente() {
+            let movidas = 0;
+            fichas.forEach(ficha => {
+                if (ficha.cuadrante === 'inf-izq') {
+                    ficha.cuadrante = 'sup-izq';
+                    movidas++;
+                } else if (ficha.cuadrante === 'inf-der') {
+                    ficha.cuadrante = 'sup-der';
+                    movidas++;
+                }
+            });
+
+            if (movidas > 0) {
+                document.querySelectorAll('.ficha-drag').forEach(e => e.remove());
+                fichas.forEach(ficha => {
+                    crearFichaDOM(ficha.id, ficha.tipo, ficha.cuadrante, ficha.x, ficha.y, ficha.rotada);
+                });
+                mostrarToast(`¡Sustracción completada! Se subieron e invirtieron ${movidas} fichas.`);
+                actualizarLecturaPolinomio();
+            } else {
+                mostrarToast("Coloca primero fichas en la sección de abajo.");
+            }
+        }
+
+        // GENERACIÓN DE LA MULTIPLICACIÓN: ÁREA RECTANGULAR CONTIGUA AL ORIGEN
+        function generarRectanguloInterseccion() {
+            if (factoresP.length === 0 || factoresQ.length === 0) {
+                mostrarToast("Para multiplicar debes ingresar términos en el eje horizontal y vertical.");
+                return;
+            }
+
+            fichas = [];
+            document.querySelectorAll('.mosaico-rect-contenedor').forEach(e => e.remove());
+            document.querySelectorAll('.ficha-drag').forEach(e => e.remove());
+            
+            multiplicacionGenerada = true; // Se bloquea el banner de resultado final en multiplicación
+
+            let pPos = factoresP.filter(f => f.signo > 0).sort((a,b) => getGradoFactor(b.tipo) - getGradoFactor(a.tipo));
+            let pNeg = factoresP.filter(f => f.signo < 0).sort((a,b) => getGradoFactor(b.tipo) - getGradoFactor(a.tipo));
+
+            let qPos = factoresQ.filter(f => f.signo > 0).sort((a,b) => getGradoFactor(b.tipo) - getGradoFactor(a.tipo));
+            let qNeg = factoresQ.filter(f => f.signo < 0).sort((a,b) => getGradoFactor(b.tipo) - getGradoFactor(a.tipo));
+
+            const crearInterseccionMosaico = (cuadranteId, factoresHoriz, factoresVert, alineacionClases) => {
+                const cuadrante = document.getElementById(cuadranteId);
+                if (!cuadrante || factoresHoriz.length === 0 || factoresVert.length === 0) return;
+
+                const contenedor = document.createElement('div');
+                contenedor.className = `mosaico-rect-contenedor absolute ${alineacionClases} flex flex-col gap-1 p-1 bg-slate-900/5 rounded-none border border-slate-700/40 z-25`;
+                
+                factoresVert.forEach(fv => {
+                    const row = document.createElement('div');
+                    row.className = "flex gap-1 items-center justify-start";
+
+                    factoresHoriz.forEach(fh => {
+                        const f1 = fh.tipo; 
+                        const f2 = fv.tipo; 
+                        let tipoFichaResultante = '';
+                        let rotada = false;
+
+                        if (f1 === '1' && f2 === '1') {
+                            tipoFichaResultante = '1';
+                        } else if (f1 === '1' && f2 === 'x') {
+                            tipoFichaResultante = 'x';
+                            rotada = true;
+                        } else if (f1 === 'x' && f2 === '1') {
+                            tipoFichaResultante = 'x';
+                            rotada = false;
+                        } else if (f1 === 'x' && f2 === 'x') {
+                            tipoFichaResultante = 'x2';
+                        } else if (f1 === '1' && f2 === 'x2') {
+                            tipoFichaResultante = 'x2_rect';
+                            rotada = true;
+                        } else if (f1 === 'x2' && f2 === '1') {
+                            tipoFichaResultante = 'x2_rect';
+                            rotada = false;
+                        } else if ((f1 === 'x2' && f2 === 'x') || (f1 === 'x' && f2 === 'x2')) {
+                            tipoFichaResultante = 'x3';
+                            rotada = (f1 === 'x' && f2 === 'x2');
+                        }
+
+                        idFichaSeq++;
+                        const id = `ficha-${idFichaSeq}`;
+                        
+                        const pxX = 40 + Math.random() * 80;
+                        const pxY = 40 + Math.random() * 80;
+
+                        fichas.push({ id, tipo: tipoFichaResultante, cuadrante: cuadranteId.replace('c-', ''), x: pxX, y: pxY, rotada: rotada });
+
+                        let configVisual = getEstilosGeometriaMosaico(tipoFichaResultante, rotada);
+
+                        const divCell = document.createElement('div');
+                        divCell.id = id;
+                        divCell.className = `border-2 rounded-none font-black text-xs flex items-center justify-center shadow-md select-none relative ${configVisual.sizeClass} ${configVisual.customClass}`;
+                        divCell.style.backgroundColor = configVisual.colorBg;
+                        divCell.style.borderColor = configVisual.colorBorder;
+                        divCell.innerHTML = `
+                            <span>${configVisual.label}</span>
+                            <button onclick="eliminarFicha('${id}')" class="absolute -top-1.5 -right-1.5 bg-slate-950/80 hover:bg-red-600 text-white rounded-none w-4 h-4 flex items-center justify-center shadow-sm transition-colors" title="Eliminar ficha">
+                                <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        `;
+
+                        row.appendChild(divCell);
+                    });
+
+                    if (row.children.length > 0) {
+                        contenedor.appendChild(row);
+                    }
+                });
+
+                cuadrante.insertBefore(contenedor, cuadrante.firstChild);
+            };
+
+            crearInterseccionMosaico('c-sup-der', pPos, qPos, 'bottom-1 left-1 flex-col-reverse');
+            crearInterseccionMosaico('c-sup-izq', pNeg, qPos, 'bottom-1 right-1 flex-col-reverse items-end');
+            crearInterseccionMosaico('c-inf-izq', pNeg, qNeg, 'top-1 right-1 items-end');
+            crearInterseccionMosaico('c-inf-der', pPos, qNeg, 'top-1 left-1');
+
+            actualizarLecturaPolinomio();
+            mostrarToast("¡Mosaico de multiplicación generado! Proceda a simplificar u ordenar.");
+        }
+
+        // ALGORITMO GEOMÉTRICO DE DIVISIÓN
+        function ejecutarDivisionGeometra() {
+            if (factoresP.length === 0) {
+                mostrarToast("Coloca el divisor Q(x) sobre el eje horizontal primero.");
+                return;
+            }
+
+            let dividendoCoefs = { x3: 0, x2: 0, x: 0, const: 0 };
+            fichas.forEach(f => {
+                if (f.cuadrante.startsWith('sup')) {
+                    let signo = (f.cuadrante === 'sup-der') ? 1 : -1;
+                    if (f.tipo === 'x3') dividendoCoefs.x3 += signo;
+                    if (f.tipo === 'x2' || f.tipo === 'x2_rect') dividendoCoefs.x2 += signo;
+                    if (f.tipo === 'x') dividendoCoefs.x += signo;
+                    if (f.tipo === '1') dividendoCoefs.const += signo;
+                }
+            });
+
+            if (dividendoCoefs.x3 === 0 && dividendoCoefs.x2 === 0 && dividendoCoefs.x === 0 && dividendoCoefs.const === 0) {
+                mostrarToast("Primero debes ubicar el dividendo P(x) en los cuadrantes superiores.");
+                return;
+            }
+
+            let divisorCoefs = { x2: 0, x: 0, const: 0 };
+            factoresP.forEach(f => {
+                if (f.tipo === 'x2') divisorCoefs.x2 += f.signo;
+                if (f.tipo === 'x') divisorCoefs.x += f.signo;
+                if (f.tipo === '1') divisorCoefs.const += f.signo;
+            });
+
+            let P_coef = [dividendoCoefs.const, dividendoCoefs.x, dividendoCoefs.x2, dividendoCoefs.x3];
+            let Q_coef = [divisorCoefs.const, divisorCoefs.x, divisorCoefs.x2];
+
+            let gradoP = obtenerGradoReal(P_coef);
+            let gradoQ = obtenerGradoReal(Q_coef);
+
+            if (gradoQ < 0) {
+                mostrarToast("Error: Divisor nulo.");
+                return;
+            }
+
+            let cociente = [0, 0, 0, 0];
+            let residuo = [...P_coef];
+
+            for (let i = gradoP; i >= gradoQ; i--) {
+                let coefP = residuo[i];
+                let coefQ = Q_coef[gradoQ];
+                
+                if (coefP !== 0) {
+                    let gradoTermino = i - gradoQ;
+                    let factor = coefP / coefQ;
+                    
+                    cociente[gradoTermino] = factor;
+                    
+                    for (let j = 0; j <= gradoQ; j++) {
+                        residuo[gradoTermino + j] -= factor * Q_coef[j];
+                    }
+                }
+            }
+
+            // Reorganización en el tablero
+            fichas = [];
+            document.querySelectorAll('.mosaico-rect-contenedor').forEach(e => e.remove());
+            document.querySelectorAll('.ficha-drag').forEach(e => e.remove());
+
+            // Construir el rectángulo de base Q(x) y altura C(x) [Cociente]
+            let pPos = factoresP.filter(f => f.signo > 0).sort((a,b) => getGradoFactor(b.tipo) - getGradoFactor(a.tipo));
+            let pNeg = factoresP.filter(f => f.signo < 0).sort((a,b) => getGradoFactor(b.tipo) - getGradoFactor(a.tipo));
+
+            let factoresY_Cociente = [];
+            const mapearCocienteAEjeY = (coef, tipo) => {
+                if (coef === 0) return;
+                let signo = coef > 0 ? 1 : -1;
+                for (let k = 0; k < Math.abs(coef); k++) {
+                    factoresY_Cociente.push({ id: `cociente-term-${tipo}-${k}`, tipo: tipo, signo: signo });
+                }
+            };
+            mapearCocienteAEjeY(cociente[2], 'x2');
+            mapearCocienteAEjeY(cociente[1], 'x');
+            mapearCocienteAEjeY(cociente[0], '1');
+
+            let qPos_Cociente = factoresY_Cociente.filter(f => f.signo > 0).sort((a,b) => getGradoFactor(b.tipo) - getGradoFactor(a.tipo));
+            let qNeg_Cociente = factoresY_Cociente.filter(f => f.signo < 0).sort((a,b) => getGradoFactor(b.tipo) - getGradoFactor(a.tipo));
+
+            const crearMosaicoDivision = (cuadranteId, factoresHoriz, factoresVert, alineacionClases) => {
+                const cuadrante = document.getElementById(cuadranteId);
+                if (!cuadrante || factoresHoriz.length === 0 || factoresVert.length === 0) return;
+
+                const contenedor = document.createElement('div');
+                contenedor.className = `mosaico-rect-contenedor absolute ${alineacionClases} flex flex-col gap-1 p-1 bg-indigo-500/10 rounded-none border-2 border-indigo-500/30 z-25`;
+                
+                factoresVert.forEach(fv => {
+                    const row = document.createElement('div');
+                    row.className = "flex gap-1 items-center justify-start";
+
+                    factoresHoriz.forEach(fh => {
+                        let tipoFichaResultante = '';
+                        let rotada = false;
+                        const f1 = fh.tipo;
+                        const f2 = fv.tipo;
+
+                        if (f1 === '1' && f2 === '1') {
+                            tipoFichaResultante = '1';
+                        } else if (f1 === '1' && f2 === 'x') {
+                            tipoFichaResultante = 'x';
+                            rotada = true;
+                        } else if (f1 === 'x' && f2 === '1') {
+                            tipoFichaResultante = 'x';
+                            rotada = false;
+                        } else if (f1 === 'x' && f2 === 'x') {
+                            tipoFichaResultante = 'x2';
+                        } else if (f1 === '1' && f2 === 'x2') {
+                            tipoFichaResultante = 'x2_rect';
+                            rotada = true;
+                        } else if (f1 === 'x2' && f2 === '1') {
+                            tipoFichaResultante = 'x2_rect';
+                            rotada = false;
+                        } else if ((f1 === 'x2' && f2 === 'x') || (f1 === 'x' && f2 === 'x2')) {
+                            tipoFichaResultante = 'x3';
+                            rotada = (f1 === 'x' && f2 === 'x2');
+                        }
+
+                        idFichaSeq++;
+                        const id = `ficha-${idFichaSeq}`;
+                        
+                        const pxX = 40 + Math.random() * 80;
+                        const pxY = 40 + Math.random() * 80;
+
+                        fichas.push({ id, tipo: tipoFichaResultante, cuadrante: cuadranteId.replace('c-', ''), x: pxX, y: pxY, rotada: rotada });
+
+                        let configVisual = getEstilosGeometriaMosaico(tipoFichaResultante, rotada);
+
+                        const divCell = document.createElement('div');
+                        divCell.id = id;
+                        divCell.className = `border border-indigo-400/50 rounded-none font-black text-[10px] flex items-center justify-center relative ${configVisual.sizeClass} ${configVisual.customClass}`;
+                        divCell.style.backgroundColor = configVisual.colorBg;
+                        divCell.style.borderColor = configVisual.colorBorder;
+                        divCell.innerHTML = `<span>${configVisual.label}</span>`;
+
+                        row.appendChild(divCell);
+                    });
+
+                    if (row.children.length > 0) {
+                        contenedor.appendChild(row);
+                    }
+                });
+
+                cuadrante.insertBefore(contenedor, cuadrante.firstChild);
+            };
+
+            crearMosaicoDivision('c-sup-der', pPos, qPos_Cociente, 'bottom-1 left-1 flex-col-reverse');
+            crearMosaicoDivision('c-sup-izq', pNeg, qPos_Cociente, 'bottom-1 right-1 flex-col-reverse items-end');
+            crearMosaicoDivision('c-inf-izq', pNeg, qNeg_Cociente, 'top-1 right-1 items-end');
+            crearMosaicoDivision('c-inf-der', pPos, qNeg_Cociente, 'top-1 left-1');
+
+            // Inyectar fichas restantes del residuo de forma libre
+            const poblarFichasResiduo = (coef, tipo) => {
+                if (coef === 0) return;
+                const cuadrante = coef > 0 ? 'sup-der' : 'sup-izq';
+                const cant = Math.abs(coef);
+                for (let k = 0; k < cant; k++) {
+                    idFichaSeq++;
+                    const id = `ficha-${idFichaSeq}`;
+                    const pxX = 20 + Math.random() * 100;
+                    const pxY = 20 + Math.random() * 100;
+                    fichas.push({ id, tipo, cuadrante, x: pxX, y: pxY, rotada: false });
+                    crearFichaDOM(id, tipo, cuadrante, pxX, pxY, false);
+                }
+            };
+
+            poblarFichasResiduo(residuo[3], 'x3');
+            poblarFichasResiduo(residuo[2], 'x2');
+            poblarFichasResiduo(residuo[1], 'x');
+            poblarFichasResiduo(residuo[0], '1');
+
+            let c_poly = { x3: 0, x2: cociente[2], x: cociente[1], const: cociente[0] };
+            let r_poly = { x3: residuo[3], x2: residuo[2], x: residuo[1], const: residuo[0] };
+
+            let stringCociente = construirPolinomioString(c_poly);
+            let stringResiduo = construirPolinomioString(r_poly);
+
+            divisionComprobada = false; // Se oculta el resultado en el banner de división hasta presionar "Ver resultado"
+            resultadoDivisionPendiente = { cociente: stringCociente, residuo: stringResiduo };
+            
+            actualizarLecturaPolinomio();
+            mostrarToast("Mosaico de división calculado. Haz clic en 'Ver resultado'.");
+        }
+
+        // ALGORITMO EXCLUSIVO DE FACTORIZACIÓN GEOMÉTRICA
+        function ejecutarFactorizacionGeometra() {
+            let P_coef = { x3: 0, x2: 0, x: 0, const: 0 };
+            fichas.forEach(f => {
+                if (f.cuadrante.startsWith('sup')) {
+                    let signo = (f.cuadrante === 'sup-der') ? 1 : -1;
+                    if (f.tipo === 'x3') P_coef.x3 += signo;
+                    if (f.tipo === 'x2' || f.tipo === 'x2_rect') P_coef.x2 += signo;
+                    if (f.tipo === 'x') P_coef.x += signo;
+                    if (f.tipo === '1') P_coef.const += signo;
+                }
+            });
+
+            if (P_coef.x3 === 0 && P_coef.x2 === 0 && P_coef.x === 0 && P_coef.const === 0) {
+                mostrarToast("Primero debes ubicar el polinomio P(x) a factorizar en los cuadrantes superiores.");
+                return;
+            }
+
+            let P_vector = [P_coef.const, P_coef.x, P_coef.x2, P_coef.x3];
+            let gradoP = obtenerGradoReal(P_vector);
+
+            if (gradoP <= 1) {
+                mostrarToast("El polinomio debe ser de grado 2 o superior para factorizarse.");
+                return;
+            }
+
+            let factores = intentarFactorizarPolinomioEntero(P_vector, gradoP);
+
+            const respuestaUI = document.getElementById('factores-resultado');
+
+            if (!factores) {
+                if (respuestaUI) respuestaUI.innerText = "No factorizable con enteros.";
+                resultadoFactorizacionPendiente = ""; 
+                mostrarToast("El polinomio no es factorizable de forma rectangular.");
+                return;
+            }
+
+            // Congelar el banner de P(x) en el módulo de factorización antes de vaciar las fichas
+            formulaPFactorizacionEstática = construirPolinomioString(P_coef);
+            factorizacionEjecutada = true;
+
+            let Q_vector = factores.Q;
+            let C_vector = factores.C;
+
+            fichas = [];
+            document.querySelectorAll('.mosaico-rect-contenedor').forEach(e => e.remove());
+            document.querySelectorAll('.ficha-drag').forEach(e => e.remove());
+
+            let factoresX_virtuales = [];
+            let factoresY_virtuales = [];
+
+            const volcarAVirtuales = (coefs, esEjeY) => {
+                let target = esEjeY ? factoresY_virtuales : factoresX_virtuales;
+                if (coefs[2] !== 0) {
+                    let signo = coefs[2] > 0 ? 1 : -1;
+                    for (let j = 0; j < Math.abs(coefs[2]); j++) target.push({ tipo: 'x2', signo: signo });
+                }
+                if (coefs[1] !== 0) {
+                    let signo = coefs[1] > 0 ? 1 : -1;
+                    for (let j = 0; j < Math.abs(coefs[1]); j++) target.push({ tipo: 'x', signo: signo });
+                }
+                if (coefs[0] !== 0) {
+                    let signo = coefs[0] > 0 ? 1 : -1;
+                    for (let j = 0; j < Math.abs(coefs[0]); j++) target.push({ tipo: '1', signo: signo });
+                }
+            };
+
+            volcarAVirtuales(Q_vector, false); // Base Eje X
+            volcarAVirtuales(C_vector, true);  // Altura Eje Y
+
+            let pPos = factoresX_virtuales.filter(f => f.signo > 0).sort((a,b) => getGradoFactor(b.tipo) - getGradoFactor(a.tipo));
+            let pNeg = factoresX_virtuales.filter(f => f.signo < 0).sort((a,b) => getGradoFactor(b.tipo) - getGradoFactor(a.tipo));
+
+            let qPos_Cociente = factoresY_virtuales.filter(f => f.signo > 0).sort((a,b) => getGradoFactor(b.tipo) - getGradoFactor(a.tipo));
+            let qNeg_Cociente = factoresY_virtuales.filter(f => f.signo < 0).sort((a,b) => getGradoFactor(b.tipo) - getGradoFactor(a.tipo));
+
+            const crearMosaicoFactorizacion = (cuadranteId, factoresHoriz, factoresVert, alineacionClases) => {
+                const cuadrante = document.getElementById(cuadranteId);
+                if (!cuadrante || factoresHoriz.length === 0 || factoresVert.length === 0) return;
+
+                const contenedor = document.createElement('div');
+                contenedor.className = `mosaico-rect-contenedor absolute ${alineacionClases} flex flex-col gap-1 p-1 bg-indigo-500/10 rounded-none border-2 border-indigo-400 z-25`;
+                
+                factoresVert.forEach(fv => {
+                    const row = document.createElement('div');
+                    row.className = "flex gap-1 items-center justify-start";
+
+                    factoresHoriz.forEach(fh => {
+                        let tipoFichaResultante = '';
+                        let rotada = false;
+                        const f1 = fh.tipo;
+                        const f2 = fv.tipo;
+
+                        if (f1 === '1' && f2 === '1') {
+                            tipoFichaResultante = '1';
+                        } else if (f1 === '1' && f2 === 'x') {
+                            tipoFichaResultante = 'x';
+                            rotada = true;
+                        } else if (f1 === 'x' && f2 === '1') {
+                            tipoFichaResultante = 'x';
+                            rotada = false;
+                        } else if (f1 === 'x' && f2 === 'x') {
+                            tipoFichaResultante = 'x2';
+                        } else if (f1 === '1' && f2 === 'x2') {
+                            tipoFichaResultante = 'x2_rect';
+                            rotada = true;
+                        } else if (f1 === 'x2' && f2 === '1') {
+                            tipoFichaResultante = 'x2_rect';
+                            rotada = false;
+                        } else if ((f1 === 'x2' && f2 === 'x') || (f1 === 'x' && f2 === 'x2')) {
+                            tipoFichaResultante = 'x3';
+                            rotada = (f1 === 'x' && f2 === 'x2');
+                        }
+
+                        idFichaSeq++;
+                        const id = `ficha-${idFichaSeq}`;
+                        const pxX = 40 + Math.random() * 80;
+                        const pxY = 40 + Math.random() * 80;
+
+                        fichas.push({ id, tipo: tipoFichaResultante, cuadrante: cuadranteId.replace('c-', ''), x: pxX, y: pxY, rotada: rotada });
+
+                        let configVisual = getEstilosGeometriaMosaico(tipoFichaResultante, rotada);
+
+                        const divCell = document.createElement('div');
+                        divCell.id = id;
+                        divCell.className = `border border-indigo-400/50 rounded-none font-black text-[10px] flex items-center justify-center relative ${configVisual.sizeClass} ${configVisual.customClass}`;
+                        divCell.style.backgroundColor = configVisual.colorBg;
+                        divCell.style.borderColor = configVisual.colorBorder;
+                        divCell.innerHTML = `<span>${configVisual.label}</span>`;
+
+                        row.appendChild(divCell);
+                    });
+
+                    if (row.children.length > 0) {
+                        contenedor.appendChild(row);
+                    }
+                });
+
+                cuadrante.insertBefore(contenedor, cuadrante.firstChild);
+            };
+
+            crearMosaicoFactorizacion('c-sup-der', pPos, qPos_Cociente, 'bottom-1 left-1 flex-col-reverse');
+            crearMosaicoFactorizacion('c-sup-izq', pNeg, qPos_Cociente, 'bottom-1 right-1 flex-col-reverse items-end');
+            crearMosaicoFactorizacion('c-inf-izq', pNeg, qNeg_Cociente, 'top-1 right-1 items-end');
+            crearMosaicoFactorizacion('c-inf-der', pPos, qNeg_Cociente, 'top-1 left-1');
+
+            let q_poly = { x2: Q_vector[2], x: Q_vector[1], const: Q_vector[0] };
+            let c_poly = { x2: C_vector[2], x: C_vector[1], const: C_vector[0] };
+
+            let stringBaseQ = construirPolinomioString(q_poly);
+            let stringAlturaC = construirPolinomioString(c_poly);
+
+            resultadoFactorizacionPendiente = `(${stringBaseQ}) * (${stringAlturaC})`;
+            
+            actualizarLecturaPolinomio();
+            mostrarToast("Fichas organizadas en forma rectangular. Haz clic en 'Ver resultado'.");
+        }
+
+        // Algoritmo analítico de factorización de polinomios cuadráticos y cúbicos reales enteros
+        function intentarFactorizarPolinomioEntero(P, grado) {
+            if (grado === 2) {
+                let A = P[2];
+                let B = P[1];
+                let Q = P[0];
+
+                for (let d = -15; d <= 15; d++) {
+                    if (d === 0) continue;
+                    if (A % d !== 0) continue;
+                    let f = A / d;
+                    for (let e = -15; e <= 15; e++) {
+                        if (e === 0 && Q !== 0) continue;
+                        if (Q === 0 && e !== 0) continue; 
+                        if (Q !== 0 && Q % e !== 0) continue;
+                        let g = (Q === 0) ? 0 : Q / e;
+                        
+                        if (d * g + e * f === B) {
+                            if (d < 0) {
+                                d = -d;
+                                e = -e;
+                                f = -f;
+                                g = -g;
+                            }
+                            return {
+                                Q: [e, d, 0],
+                                C: [g, f, 0]
+                            };
+                        }
+                    }
+                }
+            } else if (grado === 3) {
+                let A = P[3];
+                let B = P[2];
+                let C = P[1];
+                let D = P[0];
+
+                for (let d = -10; d <= 10; d++) {
+                    if (d === 0) continue;
+                    if (A % d !== 0) continue;
+                    let f = A / d;
+
+                    for (let e = -10; e <= 10; e++) {
+                        if (e === 0 && D !== 0) continue;
+                        if (D === 0 && e !== 0) continue;
+                        if (D !== 0 && D % e !== 0) continue;
+                        let h = (D === 0) ? 0 : D / e;
+
+                        let numeradoG = B - e * f;
+                        if (numeradoG % d !== 0) continue;
+                        let g = numeradoG / d;
+
+                        if (d * h + e * g === C) {
+                            if (d < 0) {
+                                d = -d;
+                                e = -e;
+                                f = -f;
+                                g = -g;
+                                h = -h;
+                            }
+                            return {
+                                Q: [e, d, 0],
+                                C: [h, g, f]
+                            };
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Mostrar resultado de división y factorización
+        function mostrarResultadoOperacion() {
+            if (modoActual === 'division') {
+                if (!resultadoDivisionPendiente) {
+                    mostrarToast("Primero organiza el tablero presionando 'Ejecutar División'.");
+                    return;
+                }
+                divisionComprobada = true; // Se autoriza mostrar los resultados de la división en los banners
+                actualizarLecturaPolinomio();
+                mostrarToast("Resultado de la división revelado.");
+            } else if (modoActual === 'factorizacion') {
+                if (!resultadoFactorizacionPendiente) {
+                    mostrarToast("Primero organiza el tablero presionando 'Ejecutar Factorización'.");
+                    return;
+                }
+                const factoresDOM = document.getElementById('factores-resultado');
+                if (factoresDOM) {
+                    factoresDOM.innerText = resultadoFactorizacionPendiente;
+                }
+                mostrarToast("Resultado de la factorización revelado.");
+            }
+        }
+
+        // Obtener el grado real
+        function obtenerGradoReal(coefs) {
+            for (let i = coefs.length - 1; i >= 0; i--) {
+                if (coefs[i] !== 0) return i;
+            }
+            return -1;
+        }
+
+        // Estilos y dimensiones de acoplamiento de mosaico (RGB REDEMAT)
+        function getEstilosGeometriaMosaico(tipo, rotada) {
+            let config = {
+                colorBg: 'rgb(255, 215, 0)', // 1
+                colorBorder: 'rgb(215, 175, 0)',
+                sizeClass: 'ficha-1',
+                label: '1',
+                customClass: ''
+            };
+
+            if (tipo === 'x3') {
+                config = {
+                    colorBg: 'rgb(255, 153, 204)', // x^3 (Rosa)
+                    colorBorder: 'rgb(220, 120, 170)',
+                    sizeClass: rotada ? 'ficha-x3-vert' : 'ficha-x3-horiz',
+                    label: 'x³',
+                    customClass: 'ficha-x3-isometric'
+                };
+            } else if (tipo === 'x2') {
+                config = {
+                    colorBg: 'rgb(0, 153, 255)', // x^2 Cuadrada (Azul)
+                    colorBorder: 'rgb(0, 122, 204)',
+                    sizeClass: 'ficha-x2-cuadrada',
+                    label: 'x²',
+                    customClass: ''
+                };
+            } else if (tipo === 'x2_rect') {
+                config = {
+                    colorBg: 'rgb(0, 153, 255)', // x^2 Rectangular (Azul)
+                    colorBorder: 'rgb(0, 122, 204)',
+                    sizeClass: rotada ? 'ficha-x2-rect-vert' : 'ficha-x2-rect-horiz',
+                    label: 'x²',
+                    customClass: ''
+                };
+            } else if (tipo === 'x') {
+                config = {
+                    colorBg: 'rgb(34, 197, 94)', // x (Verde Esmeralda)
+                    colorBorder: 'rgb(22, 163, 74)',
+                    sizeClass: rotada ? 'ficha-x-vert' : 'ficha-x-horiz',
+                    label: 'x',
+                    customClass: ''
+                };
+            }
+            return config;
+        }
+
+        // Aniquilación de semejantes opuestos con soporte de equivalencia mixta de grado 2 (Cuadrática / Rectangular)
+        function eliminarSemejantesOpuestos() {
+            let eliminadas = 0;
+
+            // Agrupación semántica por familias algebraicas reales
+            const familiasREDEMAT = [
+                { nombre: 'Cúbica (x³)', tipos: ['x3'] },
+                { nombre: 'Cuadrática (x²)', tipos: ['x2', 'x2_rect'] }, // Cancelación de x2 cuadrada con x2 rectangular
+                { font: 'Lineal (x)', tipos: ['x'] },
+                { nombre: 'Constante (1)', tipos: ['1'] }
+            ];
+
+            const paresCuadrantes = [
+                { izq: 'sup-izq', der: 'sup-der' },
+                { izq: 'inf-izq', der: 'inf-der' }
+            ];
+
+            try {
+                familiasREDEMAT.forEach(familia => {
+                    paresCuadrantes.forEach(par => {
+                        let bucle = true;
+                        while (bucle) {
+                            const idxIzq = fichas.findIndex(f => familia.tipos.includes(f.tipo) && f.cuadrante === par.izq);
+                            const idxDer = fichas.findIndex(f => familia.tipos.includes(f.tipo) && f.cuadrante === par.der);
+
+                            if (idxIzq !== -1 && idxDer !== -1) {
+                                const idIzq = fichas[idxIzq].id;
+                                const idDer = fichas[idxDer].id;
+
+                                // Remover del estado interno
+                                fichas = fichas.filter(f => f.id !== idIzq && f.id !== idDer);
+
+                                // Remover del DOM físico
+                                const elemIzq = document.getElementById(idIzq);
+                                const elemDer = document.getElementById(idDer);
+                                if (elemIzq) elemIzq.remove();
+                                if (elemDer) elemDer.remove();
+
+                                eliminadas += 2;
+                            } else {
+                                bucle = false;
+                            }
+                        }
+                    });
+                });
+
+                if (eliminadas > 0) {
+                    mostrarToast("¡Aniquilación completada! Se simplificaron " + eliminadas + " fichas opuestas.");
+                } else {
+                    mostrarToast("No se encontraron elementos homólogos opuestos para simplificar.");
+                }
+            } catch (err) {
+                console.error("Error en simplificar semejantes:", err);
+            }
+
+            // Al simplificar opuestos en adición/sustracción o multiplicación, se calcula y revela el resultado
+            if (paginaActual === 'modulo-estandar') {
+                simplificacionRealizada = true;
+                operacionEjecutada = false; // Cambiamos de "ejecución de cruce" a "resultado simplificado"
+            }
+            multiplicacionGenerada = false;
+
+            actualizarLecturaPolinomio();
+        }
+
+        // Retorna el valor (+1 o -1) de acuerdo con los signos definidos por el plano cartesiano modificado
+        function obtenerValorCuadrante(cuadranteId) {
+            if (cuadranteId === 'sup-der' || cuadranteId === 'inf-izq') {
+                return 1;
+            }
+            if (cuadranteId === 'sup-izq' || cuadranteId === 'inf-der') {
+                return -1;
+            }
+            return 1;
+        }
+
+        // --- MOTOR CENTRALIZADO DE LECTURA DE BANNERS ORIGINALES (Estable e inmune a NullPointerExceptions) ---
+        function actualizarLecturaPolinomio() {
+            let p = { x3: 0, x2: 0, x: 0, const: 0 }; 
+            let q = { x3: 0, x2: 0, x: 0, const: 0 }; 
+
+            try {
+                fichas.forEach(f => {
+                    let valor = obtenerValorCuadrante(f.cuadrante);
+                    if (f.cuadrante.startsWith('sup')) {
+                        if (f.tipo === 'x3') p.x3 += valor;
+                        if (f.tipo === 'x2' || f.tipo === 'x2_rect') p.x2 += valor;
+                        if (f.tipo === 'x') p.x += valor;
+                        if (f.tipo === '1') p.const += valor;
+                    } else {
+                        if (f.tipo === 'x3') q.x3 += valor;
+                        if (f.tipo === 'x2' || f.tipo === 'x2_rect') q.x2 += valor;
+                        if (f.tipo === 'x') q.x += valor;
+                        if (f.tipo === '1') q.const += valor;
+                    }
+                });
+
+                const stringP = construirPolinomioString(p);
+                const stringQ = construirPolinomioString(q);
+
+                // Reactividad específica de lectura para cada página del Simulador REDEMAT:
+                if (paginaActual === 'modulo-estandar') {
+                    const pDOM = document.getElementById('formula-p');
+                    const qDOM = document.getElementById('formula-q');
+                    const resDOM = document.getElementById('resultado-m1');
+
+                    // Lógica Didáctica:
+                    // Si se ejecutó el cruce diagonal/traslación vertical o ya se simplificaron los términos opuestos,
+                    // congelamos p(x) y q(x) con los polinomios de entrada originales para permitir la contrastación visual.
+                    if (operacionEjecutada || simplificacionRealizada) {
+                        if (pDOM && formulaPEstática !== null) pDOM.innerText = "P(x) = " + formulaPEstática;
+                        if (qDOM && formulaQEstática !== null) qDOM.innerText = "Q(x) = " + formulaQEstática;
+                        
+                        if (resDOM) {
+                            if (simplificacionRealizada) {
+                                // Mostramos el resultado algebraico resultante (todas las fichas restantes simplificadas están arriba)
+                                resDOM.innerText = stringP;
+                            } else {
+                                resDOM.innerText = "Esperando simplificación...";
+                            }
+                        }
+                    } else {
+                        // En exploración normal libre o tras pulsar "Simplificar Opuestos", la actualización es libre y en tiempo real
+                        if (pDOM) pDOM.innerText = "P(x) = " + stringP;
+                        if (qDOM) qDOM.innerText = "Q(x) = " + stringQ;
+                        if (resDOM) resDOM.innerText = "Esperando simplificación...";
+                    }
+                } 
+                else if (paginaActual === 'modulo-multiplicacion') {
+                    let baseCoefs = { x2: 0, x: 0, const: 0 };
+                    let alturaCoefs = { x2: 0, x: 0, const: 0 };
+
+                    factoresP.forEach(f => { 
+                        let key = (f.tipo === '1') ? 'const' : f.tipo;
+                        baseCoefs[key] += f.signo; 
+                    });
+                    factoresQ.forEach(f => { 
+                        let key = (f.tipo === '1') ? 'const' : f.tipo;
+                        offset = f.signo;
+                        alturaCoefs[key] += f.signo; 
+                    });
+
+                    const baseDOM = document.getElementById('factor-base-p');
+                    const alturaDOM = document.getElementById('factor-altura-q');
+                    const areaDOM = document.getElementById('area-m2');
+
+                    if (baseDOM) baseDOM.innerText = "P(x) = " + construirPolinomioString(baseCoefs);
+                    if (alturaDOM) alturaDOM.innerText = "Q(x) = " + construirPolinomioString(alturaCoefs);
+                    
+                    if (areaDOM) {
+                        // Lógica Didáctica: Si la multiplicación fue generada pero no simplificada, oculta el área resultante
+                        if (multiplicacionGenerada) {
+                            areaDOM.innerText = "Esperando simplificación...";
+                        } else {
+                            // Muestra el área física real en los cuadrantes de forma interactiva
+                            let totalMosaico = {
+                                x3: p.x3 + q.x3,
+                                x2: p.x2 + q.x2,
+                                x: p.x + q.x,
+                                const: p.const + q.const
+                            };
+                            areaDOM.innerText = construirPolinomioString(totalMosaico);
+                        }
+                    }
+                } 
+                else if (paginaActual === 'modulo-division') {
+                    const divDOM = document.getElementById('dividendo-p');
+                    const divisorDOM = document.getElementById('divisor-q');
+                    const cocienteDOM = document.getElementById('cociente-c');
+                    const residuoDOM = document.getElementById('residuo-r');
+
+                    if (divDOM) divDOM.innerText = "P(x) = " + stringP;
+                    
+                    if (divisorDOM) {
+                        let divisorCoefs = { x2: 0, x: 0, const: 0 };
+                        factoresP.forEach(f => { 
+                            let key = (f.tipo === '1') ? 'const' : f.tipo;
+                            divisorCoefs[key] += f.signo; 
+                        });
+                        divisorDOM.innerText = "Q(x) = " + construirPolinomioString(divisorCoefs);
+                    }
+
+                    // Lógica Didáctica: Oculta los resultados de cociente y residuo hasta pulsar "Ver resultado"
+                    if (cocienteDOM && residuoDOM) {
+                        if (divisionComprobada && resultadoDivisionPendiente !== null) {
+                            cocienteDOM.innerText = "C(x) = " + resultadoDivisionPendiente.cociente;
+                            residuoDOM.innerText = "R(x) = " + resultadoDivisionPendiente.residuo;
+                        } else {
+                            cocienteDOM.innerText = "C(x) = 0";
+                            residuoDOM.innerText = "R(x) = 0";
+                        }
+                    }
+                } 
+                else if (paginaActual === 'modulo-factorizacion') {
+                    const factDOM = document.getElementById('factorizar-p');
+                    if (factDOM) {
+                        if (factorizacionEjecutada && formulaPFactorizacionEstática !== null) {
+                            factDOM.innerText = "P(x) = " + formulaPFactorizacionEstática;
+                        } else {
+                            factDOM.innerText = "P(x) = " + stringP;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Error al actualizar la lectura de polinomios:", err);
+            }
+        }
+
+        // Construye un string LaTeX-like legible para el monitor
+        function construirPolinomioString(p) {
+            let terminos = [];
+            
+            // Grado 3
+            if (p.x3 !== undefined && p.x3 !== 0) {
+                if (p.x3 === 1) terminos.push("x³");
+                else if (p.x3 === -1) terminos.push("-x³");
+                else terminos.push(p.x3 + "x³");
+            }
+
+            // Grado 2
+            if (p.x2 !== undefined && p.x2 !== 0) {
+                let prefijo = (p.x2 > 0 && terminos.length > 0) ? "+" : "";
+                if (p.x2 === 1) terminos.push(prefijo + "x²");
+                else if (p.x2 === -1) terminos.push("-x²");
+                else terminos.push(prefijo + p.x2 + "x²");
+            }
+
+            // Grado 1
+            if (p.x !== undefined && p.x !== 0) {
+                let prefijo = (p.x > 0 && terminos.length > 0) ? "+" : "";
+                if (p.x === 1) terminos.push(prefijo + "x");
+                else if (p.x === -1) terminos.push("-x");
+                else terminos.push(prefijo + p.x + "x");
+            }
+
+            // Grado 0
+            if (p.const !== undefined && p.const !== 0) {
+                let prefijo = (p.const > 0 && terminos.length > 0) ? "+" : "";
+                terminos.push(prefijo + p.const);
+            }
+
+            return terminos.length === 0 ? "0" : terminos.join(" ");
+        }
+
+        // Notificaciones Flotantes (Toast)
+        function mostrarToast(mensaje) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = "bg-slate-900 border border-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-xl flex items-center gap-2 pointer-events-auto transform translate-y-2 opacity-0 transition-all duration-300";
+            toast.innerHTML = `
+                <i class="w-4 h-4 text-indigo-400 animate-pulse" data-lucide="bell"></i>
+                <span>${mensaje}</span>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-[-8px]');
+                setTimeout(() => {
+                    toast.remove();
+                }, 350);
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
