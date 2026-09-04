@@ -9,86 +9,89 @@
     </div>
 
     <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-            <p class="text-sm p-4 text-justify">
-                Se explica cómo multiplicar el polinomio $P=x^2+x-2$ con el polinomio $Q=x+1$ usando </strong>La Caja de Polinomios</strong>.
-                <ol class="list-decimal list-outside ml-6 space-y-4">
-                    <li> Ubicamos el polinomio $P$ en el eje horizontal con las fichas del <strong>Dispensador de Dimensiones</strong> del "Factor Base", teniendo en cuenta su signo y el coeficiente de cada término. Para este ejemplo, se toma una ficha $x^2$ positiva, una ficha $x$ positiva y dos fichas de $1$ negativas, las cuales se ubicarán en el eje horizontal como se muestra en la siguiente imagen:
-                        <div class="flex justify-center my-4">
-                            <img src="images/multiplicacion1.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
-                        </div>
-                    </li>                    
-                    <li> Ubicamos el polinomio $Q$ en el eje vertical con las fichas del <strong>Dispensador de Dimensiones</strong> del "Factor Altura", teniendo en cuenta su signo y el coeficiente de cada término, como se muestra en la siguiente imagen:
-                        <div class="flex justify-center my-4">
-                            <img src="images/multiplicacion2.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
-                        </div>
-                    </li>
-                    <li>
-                        Ubica bloques que coincidan con las dimensiones de los términos de $P$ y $Q$. El objetivo será formar un rectángulo de base $P$ y altura $Q$. Para este caso, observa que:
-                        <ul>
-                            <li>
-                                La ficha rectangular de $x^2$ cabe exactamente en el primer cuadrante, como se muestra en la siguiente imagen:
-                                <div class="flex justify-center my-4">
-                                    <img src="images/multiplicacion3.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
-                                </div>
-                            </li>
-                            <li>
-                                La ficha rectangular de $x$ cabe en la parte derecha del rectángulo ya ubicado, como se muestra en la siguiente imagen:
-                                <div class="flex justify-center my-4">
-                                    <img src="images/multiplicacion4.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
-                                </div>
-                            </li>
-                            <li>
-                                Sobre el bloque de $x^2$ se puede ubicar una ficha de $x^3$, como se muestra en la siguiente imagen:
-                                <div class="flex justify-center my-4">
-                                    <img src="images/multiplicacion5.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
-                                </div>
-                            </li>
-                            <li>
-                                Al lado derecho del bloque de $x^3$ y sobre el bloque de $x$, puede ubicarse un bloque $x^2$, pero esta vez la ficha cuadrada, como se muestra en la siguiente imagen:
-                                <div class="flex justify-center my-4">
-                                    <img src="images/multiplicacion6.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
-                                </div>
-                            </li>
-                            <li>
-                                En el lado izquierdo del bloque rectangular de $x^2$ puede ubicarse un bloque de $1$, como se muestra en la siguiente imagen:
-                                <div class="flex justify-center my-4">
-                                    <img src="images/multiplicacion7.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
-                                </div>
-                            </li>
-                            <li>
-                                Al lado del bloque anterior, puede ubicarse otro bloque similar, como se muestra en la siguiente imagen:
-                                <div class="flex justify-center my-4">
-                                    <img src="images/multiplicacion8.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
-                                </div>
-                            </li>
-                            <li>
-                                Sobre el bloque del $1$ y al lado izquierdo del bloque de $x^3$, puede ubicarse un bloque de $x$, pero girándolo de forma vertical con el icono que se encuentra en la parte inferior izquierda de dicha ficha, como se muestra en la siguiente imagen:
-                                <div class="flex justify-center my-4">
-                                    <img src="images/multiplicacion9.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
-                                </div>
-                            </li>
-                            <li>
-                                En el espacio restante, puede ubicarse un bloque similar al anterior, como se muestra en la siguiente imagen:
-                                <div class="flex justify-center my-4">
-                                    <img src="images/multiplicacion10.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
-                                </div>
-                            </li>
-                            <li>
-                                Una vez formado el rectángulo con base $P$ y altura $Q$, se pueden distribuir las fichas que fueron usadas en los cuadrantes donde han sido ubicadas (sin cambiarles de signo) para visualizar términos semejantes, como se muestra en la siguiente imagen:
-                                <div class="flex justify-center my-4">
-                                    <img src="images/multiplicacion11.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
-                                </div>
-                            </li>
-                            <li>
-                                Se borran del tablero aquellas fichas del mismo tipo que hayan quedado con signos diferentes. En este caso, se elimina una ficha de $x$ del primer y segundo cuadrante y se lee el resultado, como se muestra en la siguiente imagen:
-                                <div class="flex justify-center my-4">
-                                    <img src="images/multiplicacion12.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
-                                </div>
-                            </li>
-                        </ul>
-                    </li>
-                </ol>                 
-            </p>
+        <p class="text-sm p-4 text-justify">
+            El objetivo de multiplicar un polinomio $P$ por un polinomio $Q$ es formar un rectángulo que tenga una base $P$ y una altura $Q$. Para ello, se debe iniciar ubicando el polinomio $P$ en el eje horizontal y el polinomio $Q$ en el eje vertical y luego empezar a rellenar los huecos con las fichas hasta que se forme el rectángulo. El resultado de la multiplicación de los polinomios $P$ y $Q$ se puede leer de manera análoga a las anteriores operaciones (adición y sustracción). Esto es, quitar fichas iguales de cuadrantes con signo contrario y leer el resultado simplificado. A continuación se explica cómo multiplicar el polinomio $P=x^2+x-2$ con el polinomio $Q=x+1$ usando </strong>La Caja de Polinomios</strong>.
+        </p>
+        
+        <p class="text-sm p-4 text-justify">
+            <ol class="list-decimal list-outside ml-6 space-y-4">
+                <li> Ubicamos el polinomio $P$ en el eje horizontal con las fichas del <strong>Dispensador de Dimensiones</strong> del "Factor Base", teniendo en cuenta su signo y el coeficiente de cada término. Para este ejemplo, se toma una ficha $x^2$ positiva, una ficha $x$ positiva y dos fichas de $1$ negativas, las cuales se ubicarán en el eje horizontal como se muestra en la siguiente imagen:
+                    <div class="flex justify-center my-4">
+                        <img src="images/multiplicacion1.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
+                    </div>
+                </li>                    
+                <li> Ubicamos el polinomio $Q$ en el eje vertical con las fichas del <strong>Dispensador de Dimensiones</strong> del "Factor Altura", teniendo en cuenta su signo y el coeficiente de cada término, como se muestra en la siguiente imagen:
+                    <div class="flex justify-center my-4">
+                        <img src="images/multiplicacion2.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
+                    </div>
+                </li>
+                <li>
+                    Ubica bloques que coincidan con las dimensiones de los términos de $P$ y $Q$. El objetivo será formar un rectángulo de base $P$ y altura $Q$. Para este caso, observa que:
+                    <ul>
+                        <li>
+                            La ficha rectangular de $x^2$ cabe exactamente en el primer cuadrante, como se muestra en la siguiente imagen:
+                            <div class="flex justify-center my-4">
+                                <img src="images/multiplicacion3.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
+                            </div>
+                        </li>
+                        <li>
+                            La ficha rectangular de $x$ cabe en la parte derecha del rectángulo ya ubicado, como se muestra en la siguiente imagen:
+                            <div class="flex justify-center my-4">
+                                <img src="images/multiplicacion4.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
+                            </div>
+                        </li>
+                        <li>
+                            Sobre el bloque de $x^2$ se puede ubicar una ficha de $x^3$, como se muestra en la siguiente imagen:
+                            <div class="flex justify-center my-4">
+                                <img src="images/multiplicacion5.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
+                            </div>
+                        </li>
+                        <li>
+                            Al lado derecho del bloque de $x^3$ y sobre el bloque de $x$, puede ubicarse un bloque $x^2$, pero esta vez la ficha cuadrada, como se muestra en la siguiente imagen:
+                            <div class="flex justify-center my-4">
+                                <img src="images/multiplicacion6.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
+                            </div>
+                        </li>
+                        <li>
+                            En el lado izquierdo del bloque rectangular de $x^2$ puede ubicarse un bloque de $1$, como se muestra en la siguiente imagen:
+                            <div class="flex justify-center my-4">
+                                <img src="images/multiplicacion7.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
+                            </div>
+                        </li>
+                        <li>
+                            Al lado del bloque anterior, puede ubicarse otro bloque similar, como se muestra en la siguiente imagen:
+                            <div class="flex justify-center my-4">
+                                <img src="images/multiplicacion8.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
+                            </div>
+                        </li>
+                        <li>
+                            Sobre el bloque del $1$ y al lado izquierdo del bloque de $x^3$, puede ubicarse un bloque de $x$, pero girándolo de forma vertical con el icono que se encuentra en la parte inferior izquierda de dicha ficha, como se muestra en la siguiente imagen:
+                            <div class="flex justify-center my-4">
+                                <img src="images/multiplicacion9.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
+                            </div>
+                        </li>
+                        <li>
+                            En el espacio restante, puede ubicarse un bloque similar al anterior, como se muestra en la siguiente imagen:
+                            <div class="flex justify-center my-4">
+                                <img src="images/multiplicacion10.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
+                            </div>
+                        </li>
+                        <li>
+                            Una vez formado el rectángulo con base $P$ y altura $Q$, se pueden distribuir las fichas que fueron usadas en los cuadrantes donde han sido ubicadas (sin cambiarles de signo) para visualizar términos semejantes, como se muestra en la siguiente imagen:
+                            <div class="flex justify-center my-4">
+                                <img src="images/multiplicacion11.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
+                            </div>
+                        </li>
+                        <li>
+                            Se borran del tablero aquellas fichas del mismo tipo que hayan quedado con signos diferentes. En este caso, se elimina una ficha de $x$ del primer y segundo cuadrante y se lee el resultado, como se muestra en la siguiente imagen:
+                            <div class="flex justify-center my-4">
+                                <img src="images/multiplicacion12.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+            </ol>                 
+        </p>
     </div>
     
     <div class="bg-orange-500/10 border-2 border-orange-500 rounded-2xl p-5 md:p-6 mb-8 shadow-sm">
@@ -101,7 +104,7 @@
             </h4>
         </div>
         <p class="text-sm md:text-base text-slate-700 leading-relaxed">
-            Si crees que requieres más ejemplos para aprender, inventa tus propios ejemplos guiados en <a href="pages/caja_de_polinomios_operaciones.html" target="_blank" class="text-ucaldas-green font-bold hover:underline">Simulador de ejemplos guiados</a>. Dando la opción de <strong>Multiplicación</strong>, podrás crear ejemplos y te guiará paso a paso para que puedas aprender a multiplicar polinomios.
+            Si crees que requieres más ejemplos para aprender, inventa tus propios ejemplos guiados en el <a href="pages/simulador-operaciones-oscuro.html" target="_blank" class="text-ucaldas-green font-bold hover:underline">Simulador de Ejemplos Guiados</a>. Dando la opción de <strong>Multiplicación</strong>, podrás crear ejemplos y te guiará paso a paso para que puedas aprender a multiplicar polinomios.
                 <div class="flex justify-center my-4">
                     <img src="images/multiplicacion13.png" alt="Fichas Caja de Polinomios" class="w-full max-w-lg rounded-lg shadow-md border border-slate-300">
                 </div>
@@ -115,11 +118,19 @@
                 <i data-lucide="pencil" class="w-4 h-4"></i>
             </span>
             <h4 class="text-base md:text-lg font-black text-emerald-900 uppercase tracking-wider">
-                Ejercicio
+                Reto
             </h4>
         </div>
         <p class="text-sm md:text-base text-slate-700 leading-relaxed">
-            Si ya eres un experto, puedes trabajar solo en el <a href="pages/caja_de_polinomios_simulador.html" target="_blank" class="text-ucaldas-green font-bold hover:underline">Simulador Interactivo</a> del juego "La Caja de Polinomios". Prueba multiplicar el polinomio $P=2x-1$ con el polinomio $Q=x + 2$. ¿Cuál es el resultado de la multiplicación de estos dos polinomios?
+            Si ya eres un experto, puedes trabajar solo en el <a href="pages/caja_de_polinomios_simulador.html" target="_blank" class="text-ucaldas-green font-bold hover:underline">Simulador Interactivo</a> del juego "La Caja de Polinomios". Prueba multiplicar el polinomio $P=2x-1$ con el polinomio $Q=x + 2$. ¿Cuál es el resultado de la multiplicación de estos dos polinomios, $P \cdot Q=$?
         </p>
+    </div>
+
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4 border-b border-slate-200 pb-6">
+        <div>
+            <button onclick="navigateTo('caja-polinomios')" class="text-ucaldas-green font-bold text-sm flex items-center gap-1 hover:underline mb-2">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver atrás
+            </button>
+        </div>
     </div>
 </div>
