@@ -1,5 +1,5 @@
 /**
- * REDEMAT - Enrutador Dinámico y Motor SVG de Simulación
+ * REDEMAT - Enrutador Dinámico, Contador de Visitas y Simulador SVG
  * Licenciatura en Matemáticas - Universidad de Caldas
  */
 
@@ -15,64 +15,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 
 /**
  * Contador de Visitas Automático y Robusto para REDEMAT
- * Adaptado exactamente del modelo funcional de lelopezm.github.io/lelopezm
- */
-async function initVisitCounter() {
-    // Busca los elementos del contador en escritorio y celular
-    const desktopCounter = document.getElementById("visit-counter");
-    const mobileCounter = document.getElementById("mobile-visit-counter");
-
-    if (!desktopCounter && !mobileCounter) return;
-
-    // Función auxiliar para actualizar ambos badges en la interfaz
-    function updateDOMCount(formattedValue) {
-        if (desktopCounter) desktopCounter.textContent = formattedValue;
-        if (mobileCounter) mobileCounter.textContent = formattedValue;
-    }
-
-    // Nombre del espacio de trabajo (Workspace) y clave del portal en CounterAPI
-    const workspace = 'ucaldas-prof-lelopezm';
-    const pageKey = 'redemat-portal';
-    
-    // Conteo inicial base para REDEMAT
-    const initialOffset = 1285;
-
-    try {
-        // Incrementa (+1) y obtiene el contador global en CounterAPI
-        const response = await fetch(`https://api.counterapi.dev/v1/${workspace}/${pageKey}/up`);
-        
-        if (response.ok) {
-            const data = await response.json();
-            if (data && typeof data.count !== 'undefined') {
-                const totalVisits = Number(data.count) + initialOffset;
-                const formatted = totalVisits.toLocaleString('es-CO');
-                updateDOMCount(formatted);
-                localStorage.setItem(`visit_count_${pageKey}`, totalVisits.toString());
-                return;
-            }
-        }
-    } catch (error) {
-        console.warn("[CounterAPI REDEMAT] No se pudo conectar con el servidor remoto. Usando respaldo local.");
-    }
-
-    // MODO RESPALDO: Si la API remota falla o es bloqueada, se actualiza localmente con LocalStorage
-    try {
-        let localCount = parseInt(localStorage.getItem(`visit_count_${pageKey}`) || '0', 10);
-        if (localCount === 0) {
-            localCount = initialOffset + 1;
-        } else {
-            localCount += 1;
-        }
-        localStorage.setItem(`visit_count_${pageKey}`, localCount.toString());
-        updateDOMCount(localCount.toLocaleString('es-CO'));
-    } catch (e) {
-        updateDOMCount((initialOffset + 1).toLocaleString('es-CO'));
-    }
-}
-
-/**
- * Contador de Visitas Automático para REDEMAT
- * Adaptado de la lógica de lelopezm.github.io/lelopezm
+ * Muestra conteo inmediato con sincronización remota en CounterAPI y respaldo local.
  */
 async function initVisitCounter() {
     const desktopCounter = document.getElementById("visit-counter");
@@ -87,11 +30,28 @@ async function initVisitCounter() {
 
     const workspace = 'ucaldas-prof-lelopezm';
     const pageKey = 'redemat-portal';
-    const initialOffset = 1285; // Conteo inicial base para REDEMAT
+    const initialOffset = 1285; // Base inicial para REDEMAT
+
+    // 1. Mostrar valor acumulado local de forma instantánea
+    let currentLocal = parseInt(localStorage.getItem(`visit_count_${pageKey}`) || '0', 10);
+    if (currentLocal === 0) {
+        currentLocal = initialOffset + 1;
+    } else {
+        currentLocal += 1;
+    }
+    localStorage.setItem(`visit_count_${pageKey}`, currentLocal.toString());
+    updateDOMCount(currentLocal.toLocaleString('es-CO'));
+
+    // 2. Sincronizar asíncronamente con CounterAPI (Timeout de 2 segundos)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
 
     try {
-        const response = await fetch(`https://api.counterapi.dev/v1/${workspace}/${pageKey}/up`);
-        
+        const response = await fetch(`https://api.counterapi.dev/v1/${workspace}/${pageKey}/up`, {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
         if (response.ok) {
             const data = await response.json();
             if (data && typeof data.count !== 'undefined') {
@@ -99,41 +59,10 @@ async function initVisitCounter() {
                 const formatted = totalVisits.toLocaleString('es-CO');
                 updateDOMCount(formatted);
                 localStorage.setItem(`visit_count_${pageKey}`, totalVisits.toString());
-                return;
             }
         }
     } catch (error) {
-        console.warn("[CounterAPI REDEMAT] Conexión remota no disponible. Usando respaldo local.");
-    }
-
-    // RESPALDO LOCAL: Si la API remota falla o es bloqueada
-    try {
-        let localCount = parseInt(localStorage.getItem(`visit_count_${pageKey}`) || '0', 10);
-        if (localCount === 0) {
-            localCount = initialOffset + 1;
-        } else {
-            localCount += 1;
-        }
-        localStorage.setItem(`visit_count_${pageKey}`, localCount.toString());
-        updateDOMCount(localCount.toLocaleString('es-CO'));
-    } catch (e) {
-        updateDOMCount((initialOffset + 1).toLocaleString('es-CO'));
-    }
-}
-
-async function loadTemplate(containerId, filePath) {
-    try {
-        const response = await fetch(filePath);
-        if (!response.ok) throw new Error(`No se pudo cargar la plantilla: ${filePath}`);
-        const html = await response.text();
-        document.getElementById(containerId).innerHTML = html;
-
-        // Ejecutar contador automáticamente cuando se inyecte el menú nav.html
-        if (filePath.includes("nav.html")) {
-            initVisitCounter();
-        }
-    } catch (error) {
-        console.error(`Error de REDEMAT al cargar plantilla:`, error);
+        console.info("[CounterAPI REDEMAT] Usando conteo acumulado local:", currentLocal);
     }
 }
 
@@ -145,9 +74,34 @@ async function loadTemplate(containerId, filePath) {
         const response = await fetch(filePath);
         if (!response.ok) throw new Error(`No se pudo cargar la plantilla: ${filePath}`);
         const html = await response.text();
-        document.getElementById(containerId).innerHTML = html;
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = html;
+        }
+
+        // Ejecutar contador automáticamente cuando se inyecte el menú nav.html
+        if (filePath.includes("nav.html")) {
+            initVisitCounter();
+        }
     } catch (error) {
         console.error(`Error de REDEMAT al cargar módulo modular:`, error);
+    }
+}
+
+/**
+ * Alternar visibilidad de la barra de navegación móvil (Menú Hamburguesa)
+ */
+function toggleMobileMenu() {
+    const menu = document.getElementById("mobile-menu");
+    const icon = document.getElementById("mobile-hamburger-icon");
+    if (!menu) return;
+
+    menu.classList.toggle("hidden");
+
+    if (icon && typeof lucide !== "undefined") {
+        const isHidden = menu.classList.contains("hidden");
+        icon.setAttribute("data-lucide", isHidden ? "menu" : "x");
+        lucide.createIcons();
     }
 }
 
@@ -178,16 +132,18 @@ async function navigateTo(sectionId) {
     }
 
     if (sectionId === 'inicio') {
-        startSection.classList.remove("hidden");
-        dynamicContainer.classList.add("hidden");
-        dynamicContainer.innerHTML = "";
+        if (startSection) startSection.classList.remove("hidden");
+        if (dynamicContainer) {
+            dynamicContainer.classList.add("hidden");
+            dynamicContainer.innerHTML = "";
+        }
         currentView.id = 'inicio';
         return;
     }
 
     // Carga asíncrona de archivos HTML modulares
-    startSection.classList.add("hidden");
-    dynamicContainer.classList.remove("hidden");
+    if (startSection) startSection.classList.add("hidden");
+    if (dynamicContainer) dynamicContainer.classList.remove("hidden");
     
     let pagePath = `pages/${sectionId}.html`;
     if (sectionId === 'historial') {
@@ -203,7 +159,6 @@ async function navigateTo(sectionId) {
         currentView.id = sectionId;
         
         // --- MOTOR DE AUTO-RENDERIZADO DE LATEX ---
-        // Sincroniza y compila de forma automática cualquier fragmento entre $ y $$ que venga en el HTML
         if (typeof renderMathInElement !== 'undefined') {
             renderMathInElement(dynamicContainer, {
                 delimiters: [
@@ -219,15 +174,12 @@ async function navigateTo(sectionId) {
             lucide.createIcons();
         }
 
-        // Si se carga la caja de polinomios, inicializar simulador y LaTeX
+        // Inicializadores específicos por sección
         if (sectionId === 'caja-polinomios') {
             renderStaticLaTeX();
             initCajaSimulator();
-            // Cargar por defecto la pestaña de 2026 dentro de documentos-repositorios si se requiere
-            toggleYear('2026');
         }
 
-        // Si se carga la sección de documentos-repositorios o historial
         if (sectionId === 'historial') {
             toggleYear('2026');
         }
@@ -246,7 +198,7 @@ async function navigateTo(sectionId) {
 }
 
 /**
- * Control de Pestañas de Años (Carga asíncrona de contenido_2025 o contenido_2026)
+ * Control de Pestañas de Años (Carga asíncrona de contenido-2025 o contenido-2026)
  */
 async function toggleYear(year) {
     const tabContainer = document.getElementById("historial-dinamico-container");
@@ -272,6 +224,17 @@ async function toggleYear(year) {
         if (!response.ok) throw new Error("No se pudo cargar el archivo histórico del año seleccionado.");
         const html = await response.text();
         tabContainer.innerHTML = html;
+
+        // Auto-render de LaTeX para expresiones dentro del archivo de año
+        if (typeof renderMathInElement !== 'undefined') {
+            renderMathInElement(tabContainer, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ],
+                throwOnError: false
+            });
+        }
 
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
@@ -401,7 +364,7 @@ function updateSim(x, a, b) {
     }
 }
 
-// Funciones globales de UI auxiliares
+// Funciones globales auxiliares para UI
 function simulateDownload(filename) {
     simulateToast(`Iniciando descarga: ${filename}`);
 }
@@ -445,5 +408,7 @@ function copyToClipboard() {
     simulateToast("¡Código LaTeX copiado con éxito!");
 }
 
-// Asegurar accesibilidad global de la función de navegación móvil
+// Hacer accesibles globalmente las funciones invocadas desde eventos inline
 window.toggleMobileMenu = toggleMobileMenu;
+window.navigateTo = navigateTo;
+window.toggleYear = toggleYear;
