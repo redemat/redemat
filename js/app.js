@@ -8,10 +8,41 @@ document.addEventListener("DOMContentLoaded", async function() {
     await loadTemplate("nav-container", "pages/nav.html");
     await loadTemplate("footer-container", "pages/footer.html");
 
+    // Inicializar contador de visitas remoto
+    initVisitCounter();
+
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
 });
+
+/**
+ * Petición a API remota para el contador global de visitas
+ */
+async function initVisitCounter() {
+    const desktopCounter = document.getElementById("visit-counter");
+    const mobileCounter = document.getElementById("mobile-visit-counter");
+
+    if (!desktopCounter && !mobileCounter) return;
+
+    try {
+        // Namespace único para el proyecto REDEMAT Universidad de Caldas
+        const response = await fetch("https://api.counterapi.dev/v1/redemat_ucaldas_2026/visits/up");
+        
+        if (!response.ok) throw new Error("No se pudo obtener el contador");
+        
+        const data = await response.json();
+        const formattedCount = Number(data.count).toLocaleString('es-CO');
+
+        if (desktopCounter) desktopCounter.textContent = formattedCount;
+        if (mobileCounter) mobileCounter.textContent = formattedCount;
+    } catch (error) {
+        console.warn("Error al cargar visitas desde API remota:", error);
+        // Respaldo visual en caso de que el cliente tenga un bloqueador de publicidad activo
+        if (desktopCounter) desktopCounter.textContent = "1.2k+";
+        if (mobileCounter) mobileCounter.textContent = "1.2k+";
+    }
+}
 
 /**
  * Carga un archivo HTML parcial en un contenedor específico
