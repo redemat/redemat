@@ -14,7 +14,23 @@ document.addEventListener("DOMContentLoaded", async function() {
 });
 
 /**
- * Detecta el país del visitante por IP con redundancia y actualiza las banderas en el Navbar
+ * Helper de peticiones Fetch con timeout garantizado (evita peticiones colgadas por AdBlockers)
+ */
+async function fetchWithTimeout(url, timeoutMs = 2500) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timer);
+        return response;
+    } catch (err) {
+        clearTimeout(timer);
+        throw err;
+    }
+}
+
+/**
+ * Detecta el país del visitante por IP con redundancia triple y actualiza el Navbar
  */
 async function fetchVisitorCountry() {
     const desktopFlag = document.getElementById("visitor-flag");
@@ -32,20 +48,22 @@ async function fetchVisitorCountry() {
 
     const applyCountryData = (countryCode, countryName) => {
         const flagEmoji = getFlagEmoji(countryCode);
+        const codeUpper = (countryCode || "").toUpperCase();
+
         if (desktopFlag) {
-            desktopFlag.textContent = flagEmoji;
-            desktopFlag.title = `Visitante desde ${countryName}`;
+            // Muestra bandera + código ISO (ej: 🇨🇴 CO) para compatibilidad con Windows
+            desktopFlag.textContent = `${flagEmoji} ${codeUpper}`.trim();
+            desktopFlag.title = `Visitante desde ${countryName} (${codeUpper})`;
         }
         if (mobileFlag) {
             mobileFlag.textContent = `${flagEmoji} ${countryName}`;
         }
+        console.log(`[REDEMAT] País detectado con éxito: ${countryName} (${codeUpper})`);
     };
 
-    // INTENTO 1: ipwho.is (Soporte nativo HTTPS/CORS)
+    // INTENTO 1: ipwho.is
     try {
-        const res1 = await fetch('https://ipwho.is/', { 
-            signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined 
-        });
+        const res1 = await fetchWithTimeout('https://ipwho.is/', 2500);
         if (res1.ok) {
             const data = await res1.json();
             if (data && data.success && data.country_code) {
@@ -54,28 +72,40 @@ async function fetchVisitorCountry() {
             }
         }
     } catch (e) {
-        // Continuar al siguiente proveedor si falla
+        console.warn("[REDEMAT] Proveedor 1 (ipwho.is) no respondió, probando proveedor 2...");
     }
 
-    // INTENTO 2: geojs.io (Respaldo público de alta disponibilidad)
+    // INTENTO 2: ipapi.co
     try {
-        const res2 = await fetch('https://get.geojs.io/v1/ip/geo.json', { 
-            signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined 
-        });
+        const res2 = await fetchWithTimeout('https://ipapi.co/json/', 2500);
         if (res2.ok) {
             const data = await res2.json();
+            if (data && data.country_code) {
+                applyCountryData(data.country_code, data.country_name || data.country_code);
+                return;
+            }
+        }
+    } catch (e) {
+        console.warn("[REDEMAT] Proveedor 2 (ipapi.co) no respondió, probando proveedor 3...");
+    }
+
+    // INTENTO 3: geojs.io
+    try {
+        const res3 = await fetchWithTimeout('https://get.geojs.io/v1/ip/geo.json', 2500);
+        if (res3.ok) {
+            const data = await res3.json();
             if (data && data.country_code) {
                 applyCountryData(data.country_code, data.country || data.country_code);
                 return;
             }
         }
     } catch (e) {
-        // Continuar al fallback final
+        console.warn("[REDEMAT] Todos los proveedores de geolocalización fallaron o fueron bloqueados por AdBlock.");
     }
 
-    // FALLBACK: En caso de que bloqueadores de anuncios o la red impidan la geolocalización
+    // FALLBACK FINAL: En caso de que bloqueadores de anuncios o redes restrictivas impidan las peticiones
     if (desktopFlag) {
-        desktopFlag.textContent = "🌐";
+        desktopFlag.textContent = "🌐 Global";
         desktopFlag.title = "Visitante Global";
     }
     if (mobileFlag) {
@@ -93,6 +123,9 @@ async function initVisitCounter() {
 
     if (!desktopCounter && !mobileCounter) return;
 
+    // Ejecutar detección del país en paralelo
+    fetchVisitorCountry();
+
     function updateDOMCount(formattedValue) {
         if (desktopCounter) desktopCounter.textContent = formattedValue;
         if (mobileCounter) mobileCounter.textContent = formattedValue;
@@ -100,7 +133,7 @@ async function initVisitCounter() {
 
     const workspace = 'ucaldas-prof-lelopezm';
     const pageKey = 'redemat-portal';
-    const initialOffset = 1000; // Base inicial para REDEMAT
+    const initialOffset = 1285; // Base inicial para REDEMAT
 
     // 1. Mostrar valor acumulado local de forma instantánea
     let currentLocal = parseInt(localStorage.getItem(`visit_count_${pageKey}`) || '0', 10);

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REDEMAT - Refuerzo de Matemáticas | Universidad de Caldas</title>
     
-    <!-- Tailwind CSS (URL Limpia, sin corchetes) -->
+    <!-- Tailwind CSS con paleta extendida personalizada REDEMAT -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -13,17 +13,17 @@
                 extend: {
                     colors: {
                         ucaldas: {
-                            blue: '#0F2042',    // Azul institucional
-                            green: '#006847',   // Verde heráldico U. de Caldas
-                            yellow: '#F2C94C',  // Amarillo/Dorado de realce
-                            light: '#F4F6F9',   // Gris claro de fondo
-                            dark: '#1E293B',
-                            elecblue: '#0066FE', // Azul eléctrico
+                            blue: '#0F2042',          // Azul institucional principal
+                            green: '#006847',         // Verde heráldico U. de Caldas
+                            yellow: '#F2C94C',        // Amarillo/Dorado de realce
+                            light: '#F4F6F9',         // Gris claro de fondo
+                            dark: '#1E293B',          // Azul oscuro/pizarra
+                            elecblue: '#0066FE',      // Azul eléctrico
                             greenesmerald: '#00C853', // Verde esmeralda
-                            coralintenso: '#FF6F61', // Coral intenso
-                            purple: '#7B1FA2', // Púrpura
-                            orange: '#FF8000', // Naranja
-                            pink: '#FF007F' // Rosa intenso
+                            coralintenso: '#FF6F61',  // Coral intenso
+                            purple: '#7B1FA2',        // Púrpura
+                            orange: '#FF8000',        // Naranja
+                            pink: '#FF007F'           // Rosa intenso
                         }
                     }
                 }
@@ -31,16 +31,15 @@
         }
     </script>
     
-    <!-- Estilos personalizados -->
+    <!-- Estilos personalizados del portal -->
     <link rel="stylesheet" href="CSS/styles.css">
     
-    <!-- KaTeX para renderizado matemático (URLs Limpias, sin corchetes) -->
+    <!-- KaTeX para renderizado matemático en tiempo real -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <!-- Extensión de auto-renderizado de KaTeX para compilar LaTeX dinámico en subpáginas -->
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
     
-    <!-- Lucide Icons para iconografía moderna (URL Limpia, sin corchetes) -->
+    <!-- Lucide Icons para iconografía interactiva -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Google Analytics 4 (Reemplace G-XXXXXXXXXX con su ID de medición de Google Analytics) -->
@@ -54,86 +53,89 @@
         gtag('config', 'G-XXXXXXXXXX');
     </script>
 </head>
-<body class="bg-ucaldas-light font-sans text-slate-800 flex flex-col min-h-screen">
 
-    <!-- CONTENEDOR MODULAR DE LA BARRA DE NAVEGACIÓN (Se carga dinámicamente) -->
+<body class="bg-ucaldas-light font-sans text-slate-800 flex flex-col min-h-screen selection:bg-ucaldas-yellow selection:text-ucaldas-blue">
+
+    <!-- CONTENEDOR MODULAR DE LA BARRA DE NAVEGACIÓN (Se inyecta dinámicamente nav.html) -->
     <div id="nav-container"></div>
 
     <!-- CUERPO PRINCIPAL (CONTENEDOR ASÍNCRONO DE SECCIONES) -->
     <main class="flex-grow">
         <!-- Dashboard de Inicio (Siempre accesible localmente) -->
-        <section id="sec-inicio" class="page-section max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <!-- Hero Banner -->
-            <div class="bg-gradient-to-r from-ucaldas-blue to-slate-900 rounded-3xl text-white p-8 md:p-12 shadow-xl relative overflow-hidden mb-12 border-b-8 border-ucaldas-green">
-                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,104,71,0.3),transparent_50%)]"></div>
+        <section id="sec-inicio" class="page-section max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+            <!-- Hero Banner Principal -->
+            <div class="bg-gradient-to-r from-ucaldas-blue via-slate-900 to-ucaldas-dark rounded-2xl md:rounded-3xl text-white p-6 sm:p-8 md:p-12 shadow-xl relative overflow-hidden mb-8 md:mb-12 border-b-8 border-ucaldas-green">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,104,71,0.35),transparent_50%)] pointer-events-none"></div>
                 <div class="relative z-10 max-w-3xl">
-                    <span class="bg-ucaldas-yellow text-slate-900 font-bold px-4 py-1.5 rounded-full text-xs uppercase tracking-widest shadow-md">Proyecto de Proyección Institucional</span>
-                    <h1 class="text-4xl md:text-5xl font-black tracking-tight mt-4 leading-tight">
+                    <span class="bg-ucaldas-yellow text-slate-900 font-extrabold px-3.5 py-1.5 rounded-full text-[10px] md:text-xs uppercase tracking-widest shadow-md inline-block mb-3">
+                        Proyecto de Proyección Institucional
+                    </span>
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">
                         Refuerzo de Matemática y <span class="text-ucaldas-yellow">Gamificación de conceptos matemáticos</span>
                     </h1>
-                    <p class="text-base text-slate-300 mt-4 leading-relaxed">
-                        Iniciativa del Departamento de Matemáticas de la Universidad de Caldas. Entornos lúdicos y simulaciones para el desarrollo del pensamiento lógico-abstracto.
+                    <p class="text-xs sm:text-sm md:text-base text-slate-300 mt-3 md:mt-4 leading-relaxed max-w-2xl">
+                        Iniciativa del Departamento de Matemáticas de la Universidad de Caldas. Entornos lúdicos y simulaciones interactivas para el fortalecimiento del pensamiento lógico-abstracto.
                     </p>
-                    <div class="mt-8 flex flex-wrap gap-4">
-                        <button onclick="navigateTo('caja-polinomios')" class="bg-ucaldas-green hover:bg-emerald-700 text-white font-bold px-6 py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2">
-                            <i data-lucide="play" class="w-5 h-5"></i> Explorar "La Caja de Polinomios"
+                    
+                    <div class="mt-6 md:mt-8 flex flex-wrap gap-3 md:gap-4">
+                        <button onclick="navigateTo('caja-polinomios')" class="bg-ucaldas-green hover:bg-emerald-700 active:scale-95 text-white font-bold px-5 md:px-6 py-3 md:py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 text-xs md:text-sm">
+                            <i data-lucide="play" class="w-4 h-4 md:w-5 md:h-5 fill-current"></i> Explorar "La Caja de Polinomios"
                         </button>
-                        <button onclick="navigateTo('historial')" class="bg-slate-800/80 hover:bg-slate-700 text-slate-200 font-bold px-6 py-3.5 rounded-xl border border-slate-700 transition-all duration-200 flex items-center gap-2">
-                            <i data-lucide="archive" class="w-5 h-5"></i> Bitácora Histórica
+                        <button onclick="navigateTo('historial')" class="bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold px-5 md:px-6 py-3 md:py-3.5 rounded-xl border border-slate-700 transition-all duration-200 flex items-center gap-2 text-xs md:text-sm">
+                            <i data-lucide="archive" class="w-4 h-4 md:w-5 md:h-5"></i> Bitácora Histórica
                         </button>
                     </div>
                 </div>
             </div>
 
             <!-- Panel de Módulos Didácticos -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                    <div class="bg-ucaldas-green/10 text-ucaldas-green w-12 h-12 rounded-xl flex items-center justify-center mb-4">
-                        <i data-lucide="eye" class="w-6 h-6"></i>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-8 md:mb-12">
+                <div class="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div class="bg-ucaldas-green/10 text-ucaldas-green w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                            <i data-lucide="eye" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-ucaldas-blue mb-2">Visualización Dinámica</h3>
+                        <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                            Comprensión geométrica y representación espacial antes del desarrollo formal del algebra abstracto.
+                        </p>
                     </div>
-                    <h3 class="text-lg font-bold text-ucaldas-blue mb-2">Visualización Dinámica</h3>
-                    <p class="text-sm text-slate-600 leading-relaxed">
-                        Comprensión geométrica antes del desarrollo del formalismo abstracto.
-                    </p>
                 </div>
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                    <div class="bg-ucaldas-yellow/20 text-slate-800 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
-                        <i data-lucide="swatchbook" class="w-6 h-6"></i>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div class="bg-ucaldas-yellow/20 text-slate-800 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                            <i data-lucide="swatchbook" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-ucaldas-blue mb-2">Material Tangible</h3>
+                        <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                            Transición guiada del material didáctico físico (corte láser en MDF) hacia simulaciones virtuales interactivos.
+                        </p>
                     </div>
-                    <h3 class="text-lg font-bold text-ucaldas-blue mb-2">Material Tangible</h3>
-                    <p class="text-sm text-slate-600 leading-relaxed">
-                        Transición del material didáctico físico (MDF) a simulaciones interactivas.
-                    </p>
                 </div>
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                    <div class="bg-ucaldas-blue/10 text-ucaldas-blue w-12 h-12 rounded-xl flex items-center justify-center mb-4">
-                        <i data-lucide="award" class="w-6 h-6"></i>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div class="bg-ucaldas-blue/10 text-ucaldas-blue w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                            <i data-lucide="award" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-ucaldas-blue mb-2">Evaluación Formativa</h3>
+                        <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                            Seguimiento cualitativo del progreso de razonamiento mediante mecánicas de juego matemático.
+                        </p>
                     </div>
-                    <h3 class="text-lg font-bold text-ucaldas-blue mb-2">Evaluación Formativa</h3>
-                    <p class="text-sm text-slate-600 leading-relaxed">
-                        Seguimiento cualitativo del proceso de aprendizaje mediante el juego matemático.
-                    </p>
                 </div>
             </div>
         </section>
 
-        <!-- Contenedor dinámico de carga asíncrona (Router SPA) -->
+        <!-- Contenedor dinámico para carga asíncrona de páginas (SPA) -->
         <section id="dynamic-content" class="page-section hidden"></section>
     </main>
 
-    <!-- CONTENEDOR MODULAR DEL PIE DE PÁGINA (Se carga dinámicamente) -->
+    <!-- CONTENEDOR MODULAR DEL PIE DE PÁGINA (Se inyecta dinámicamente footer.html) -->
     <div id="footer-container"></div>
 
     <!-- Script principal de lógica de enrutamiento y simuladores -->
     <script src="js/app.js"></script>
-    <script>
-        // Carga inicial de plantillas modulares al montar el documento
-        document.addEventListener("DOMContentLoaded", function() {
-            if (typeof loadTemplate === 'function') {
-                loadTemplate("nav-container", "pages/nav.html");
-                loadTemplate("footer-container", "pages/footer.html");
-            }
-        });
-    </script>
 </body>
 </html>
