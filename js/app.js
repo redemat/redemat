@@ -30,7 +30,7 @@ async function initVisitCounter() {
 
     const workspace = 'ucaldas-prof-lelopezm';
     const pageKey = 'redemat-portal';
-    const initialOffset = 1285; // Base inicial para REDEMAT
+    const initialOffset = 1000; // Base inicial para REDEMAT
 
     // 1. Mostrar valor acumulado local de forma instantánea
     let currentLocal = parseInt(localStorage.getItem(`visit_count_${pageKey}`) || '0', 10);
