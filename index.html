@@ -115,5 +115,14 @@
 
     <!-- Script principal de lógica de enrutamiento y simuladores -->
     <script src="js/app.js"></script>
+    <script>
+        // Carga inicial de plantillas modulares al montar el documento
+        document.addEventListener("DOMContentLoaded", function() {
+            if (typeof loadTemplate === 'function') {
+                loadTemplate("nav-container", "pages/nav.html");
+                loadTemplate("footer-container", "pages/footer.html");
+            }
+        });
+    </script>
 </body>
 </html>

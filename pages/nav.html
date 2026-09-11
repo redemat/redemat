@@ -64,6 +64,13 @@
                 <button onclick="navigateTo('acerca')" id="nav-acerca" class="nav-btn px-4 py-2 rounded-md font-bold text-sm tracking-wide text-slate-200 hover:text-white hover:bg-white/5 transition-all duration-200">
                     <span class="flex items-center gap-1"><i data-lucide="info" class="w-4 h-4"></i> ¿QUÉ ES REDEMAT?</span>
                 </button>
+
+                <!-- BADGE CONTADOR DE VISITAS REMOTO (ESCRITORIO) -->
+                <div class="ml-2 flex items-center gap-1.5 bg-slate-900/60 border border-white/10 px-3 py-1.5 rounded-lg text-xs shadow-inner" title="Visitas acumuladas en el portal REDEMAT">
+                    <i data-lucide="eye" class="w-3.5 h-3.5 text-ucaldas-yellow animate-pulse"></i>
+                    <strong id="visit-counter" class="font-mono font-bold text-ucaldas-yellow">Cargando...</strong>
+                    <span class="text-[10px] text-slate-300 font-semibold uppercase tracking-wider">Visitas</span>
+                </div>
             </nav>
         </div>
     </div>
@@ -92,11 +99,12 @@
                 <i data-lucide="info" class="w-4 h-4"></i> REDEMAT
             </button>
 
-            <!-- BADGE CONTADOR DE VISITAS REMOTO -->
-            <div class="ml-2 flex items-center gap-1.5 bg-slate-900/60 border border-white/10 px-3 py-1.5 rounded-lg text-xs shadow-inner" title="Visitas acumuladas en el portal REDEMAT">
-                <i data-lucide="eye" class="w-3.5 h-3.5 text-ucaldas-yellow animate-pulse"></i>
-                <span id="visit-counter" class="font-mono font-bold text-ucaldas-yellow">...</span>
-                <span class="text-[10px] text-slate-300 font-semibold uppercase tracking-wider">Visitas</span>
+            <!-- BADGE CONTADOR DE VISITAS REMOTO (MÓVIL) -->
+            <div class="px-4 py-2 mb-2 bg-slate-900/40 rounded-xl flex items-center justify-between border border-white/5 text-xs">
+                <span class="text-slate-300 flex items-center gap-2">
+                    <i data-lucide="eye" class="w-4 h-4 text-ucaldas-yellow"></i> Total de Visitas:
+                </span>
+                <strong id="mobile-visit-counter" class="font-mono font-bold text-ucaldas-yellow bg-white/10 px-2.5 py-0.5 rounded-md">Cargando...</strong>
             </div>
         </div>
     </div>

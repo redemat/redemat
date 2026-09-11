@@ -8,16 +8,71 @@ document.addEventListener("DOMContentLoaded", async function() {
     await loadTemplate("nav-container", "pages/nav.html");
     await loadTemplate("footer-container", "pages/footer.html");
 
-    // Inicializar contador de visitas remoto
-    initVisitCounter();
-
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
 });
 
 /**
- * Petición a API remota para el contador global de visitas con respaldo local
+ * Contador de Visitas Automático y Robusto para REDEMAT
+ * Adaptado exactamente del modelo funcional de lelopezm.github.io/lelopezm
+ */
+async function initVisitCounter() {
+    // Busca los elementos del contador en escritorio y celular
+    const desktopCounter = document.getElementById("visit-counter");
+    const mobileCounter = document.getElementById("mobile-visit-counter");
+
+    if (!desktopCounter && !mobileCounter) return;
+
+    // Función auxiliar para actualizar ambos badges en la interfaz
+    function updateDOMCount(formattedValue) {
+        if (desktopCounter) desktopCounter.textContent = formattedValue;
+        if (mobileCounter) mobileCounter.textContent = formattedValue;
+    }
+
+    // Nombre del espacio de trabajo (Workspace) y clave del portal en CounterAPI
+    const workspace = 'ucaldas-prof-lelopezm';
+    const pageKey = 'redemat-portal';
+    
+    // Conteo inicial base para REDEMAT
+    const initialOffset = 1285;
+
+    try {
+        // Incrementa (+1) y obtiene el contador global en CounterAPI
+        const response = await fetch(`https://api.counterapi.dev/v1/${workspace}/${pageKey}/up`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data && typeof data.count !== 'undefined') {
+                const totalVisits = Number(data.count) + initialOffset;
+                const formatted = totalVisits.toLocaleString('es-CO');
+                updateDOMCount(formatted);
+                localStorage.setItem(`visit_count_${pageKey}`, totalVisits.toString());
+                return;
+            }
+        }
+    } catch (error) {
+        console.warn("[CounterAPI REDEMAT] No se pudo conectar con el servidor remoto. Usando respaldo local.");
+    }
+
+    // MODO RESPALDO: Si la API remota falla o es bloqueada, se actualiza localmente con LocalStorage
+    try {
+        let localCount = parseInt(localStorage.getItem(`visit_count_${pageKey}`) || '0', 10);
+        if (localCount === 0) {
+            localCount = initialOffset + 1;
+        } else {
+            localCount += 1;
+        }
+        localStorage.setItem(`visit_count_${pageKey}`, localCount.toString());
+        updateDOMCount(localCount.toLocaleString('es-CO'));
+    } catch (e) {
+        updateDOMCount((initialOffset + 1).toLocaleString('es-CO'));
+    }
+}
+
+/**
+ * Contador de Visitas Automático para REDEMAT
+ * Adaptado de la lógica de lelopezm.github.io/lelopezm
  */
 async function initVisitCounter() {
     const desktopCounter = document.getElementById("visit-counter");
@@ -25,38 +80,60 @@ async function initVisitCounter() {
 
     if (!desktopCounter && !mobileCounter) return;
 
-    // Conteo local con localStorage como respaldo inmediato
-    let localVisits = parseInt(localStorage.getItem("redemat_visits_fallback") || "1284", 10);
-    localVisits += 1;
-    localStorage.setItem("redemat_visits_fallback", localVisits);
-
-    function updateDOMCount(num) {
-        const formatted = Number(num).toLocaleString('es-CO');
-        if (desktopCounter) desktopCounter.textContent = formatted;
-        if (mobileCounter) mobileCounter.textContent = formatted;
+    function updateDOMCount(formattedValue) {
+        if (desktopCounter) desktopCounter.textContent = formattedValue;
+        if (mobileCounter) mobileCounter.textContent = formattedValue;
     }
 
-    // Mostrar inmediatamente el valor local para evitar el "..." si la API tarda
-    updateDOMCount(localVisits);
+    const workspace = 'ucaldas-prof-lelopezm';
+    const pageKey = 'redemat-portal';
+    const initialOffset = 1285; // Conteo inicial base para REDEMAT
 
     try {
-        // Intento de conexión a API remota gratuita
-        const response = await fetch("https://api.counterapi.dev/v1/redemat_ucaldas_2026/visits/up", {
-            method: "GET",
-            headers: { "Accept": "application/json" }
-        });
-
+        const response = await fetch(`https://api.counterapi.dev/v1/${workspace}/${pageKey}/up`);
+        
         if (response.ok) {
             const data = await response.json();
-            // Soporta múltiples formatos de API (.count, .value, .up_count)
-            const countValue = data.count || data.value || (data.data && data.data.up_count);
-            if (countValue) {
-                updateDOMCount(countValue);
-                localStorage.setItem("redemat_visits_fallback", countValue);
+            if (data && typeof data.count !== 'undefined') {
+                const totalVisits = Number(data.count) + initialOffset;
+                const formatted = totalVisits.toLocaleString('es-CO');
+                updateDOMCount(formatted);
+                localStorage.setItem(`visit_count_${pageKey}`, totalVisits.toString());
+                return;
             }
         }
     } catch (error) {
-        console.warn("REDEMAT: Operando contador en modo local de respaldo:", error);
+        console.warn("[CounterAPI REDEMAT] Conexión remota no disponible. Usando respaldo local.");
+    }
+
+    // RESPALDO LOCAL: Si la API remota falla o es bloqueada
+    try {
+        let localCount = parseInt(localStorage.getItem(`visit_count_${pageKey}`) || '0', 10);
+        if (localCount === 0) {
+            localCount = initialOffset + 1;
+        } else {
+            localCount += 1;
+        }
+        localStorage.setItem(`visit_count_${pageKey}`, localCount.toString());
+        updateDOMCount(localCount.toLocaleString('es-CO'));
+    } catch (e) {
+        updateDOMCount((initialOffset + 1).toLocaleString('es-CO'));
+    }
+}
+
+async function loadTemplate(containerId, filePath) {
+    try {
+        const response = await fetch(filePath);
+        if (!response.ok) throw new Error(`No se pudo cargar la plantilla: ${filePath}`);
+        const html = await response.text();
+        document.getElementById(containerId).innerHTML = html;
+
+        // Ejecutar contador automáticamente cuando se inyecte el menú nav.html
+        if (filePath.includes("nav.html")) {
+            initVisitCounter();
+        }
+    } catch (error) {
+        console.error(`Error de REDEMAT al cargar plantilla:`, error);
     }
 }
 
