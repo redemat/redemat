@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 });
 
 /**
- * Petición a API remota para el contador global de visitas
+ * Petición a API remota para el contador global de visitas con respaldo local
  */
 async function initVisitCounter() {
     const desktopCounter = document.getElementById("visit-counter");
@@ -25,22 +25,38 @@ async function initVisitCounter() {
 
     if (!desktopCounter && !mobileCounter) return;
 
-    try {
-        // Namespace único para el proyecto REDEMAT Universidad de Caldas
-        const response = await fetch("https://api.counterapi.dev/v1/redemat_ucaldas_2026/visits/up");
-        
-        if (!response.ok) throw new Error("No se pudo obtener el contador");
-        
-        const data = await response.json();
-        const formattedCount = Number(data.count).toLocaleString('es-CO');
+    // Conteo local con localStorage como respaldo inmediato
+    let localVisits = parseInt(localStorage.getItem("redemat_visits_fallback") || "1284", 10);
+    localVisits += 1;
+    localStorage.setItem("redemat_visits_fallback", localVisits);
 
-        if (desktopCounter) desktopCounter.textContent = formattedCount;
-        if (mobileCounter) mobileCounter.textContent = formattedCount;
+    function updateDOMCount(num) {
+        const formatted = Number(num).toLocaleString('es-CO');
+        if (desktopCounter) desktopCounter.textContent = formatted;
+        if (mobileCounter) mobileCounter.textContent = formatted;
+    }
+
+    // Mostrar inmediatamente el valor local para evitar el "..." si la API tarda
+    updateDOMCount(localVisits);
+
+    try {
+        // Intento de conexión a API remota gratuita
+        const response = await fetch("https://api.counterapi.dev/v1/redemat_ucaldas_2026/visits/up", {
+            method: "GET",
+            headers: { "Accept": "application/json" }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            // Soporta múltiples formatos de API (.count, .value, .up_count)
+            const countValue = data.count || data.value || (data.data && data.data.up_count);
+            if (countValue) {
+                updateDOMCount(countValue);
+                localStorage.setItem("redemat_visits_fallback", countValue);
+            }
+        }
     } catch (error) {
-        console.warn("Error al cargar visitas desde API remota:", error);
-        // Respaldo visual en caso de que el cliente tenga un bloqueador de publicidad activo
-        if (desktopCounter) desktopCounter.textContent = "1.2k+";
-        if (mobileCounter) mobileCounter.textContent = "1.2k+";
+        console.warn("REDEMAT: Operando contador en modo local de respaldo:", error);
     }
 }
 
