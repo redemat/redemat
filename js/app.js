@@ -14,6 +14,76 @@ document.addEventListener("DOMContentLoaded", async function() {
 });
 
 /**
+ * Detecta el país del visitante por IP con redundancia y actualiza las banderas en el Navbar
+ */
+async function fetchVisitorCountry() {
+    const desktopFlag = document.getElementById("visitor-flag");
+    const mobileFlag = document.getElementById("mobile-visitor-flag");
+
+    if (!desktopFlag && !mobileFlag) return;
+
+    // Función auxiliar para convertir código ISO de 2 letras (ej: CO, ES, MX) a emoji de bandera
+    const getFlagEmoji = (countryCode) => {
+        if (!countryCode || countryCode.length !== 2) return "🌐";
+        return countryCode
+            .toUpperCase()
+            .replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt(0)));
+    };
+
+    const applyCountryData = (countryCode, countryName) => {
+        const flagEmoji = getFlagEmoji(countryCode);
+        if (desktopFlag) {
+            desktopFlag.textContent = flagEmoji;
+            desktopFlag.title = `Visitante desde ${countryName}`;
+        }
+        if (mobileFlag) {
+            mobileFlag.textContent = `${flagEmoji} ${countryName}`;
+        }
+    };
+
+    // INTENTO 1: ipwho.is (Soporte nativo HTTPS/CORS)
+    try {
+        const res1 = await fetch('https://ipwho.is/', { 
+            signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined 
+        });
+        if (res1.ok) {
+            const data = await res1.json();
+            if (data && data.success && data.country_code) {
+                applyCountryData(data.country_code, data.country || data.country_code);
+                return;
+            }
+        }
+    } catch (e) {
+        // Continuar al siguiente proveedor si falla
+    }
+
+    // INTENTO 2: geojs.io (Respaldo público de alta disponibilidad)
+    try {
+        const res2 = await fetch('https://get.geojs.io/v1/ip/geo.json', { 
+            signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined 
+        });
+        if (res2.ok) {
+            const data = await res2.json();
+            if (data && data.country_code) {
+                applyCountryData(data.country_code, data.country || data.country_code);
+                return;
+            }
+        }
+    } catch (e) {
+        // Continuar al fallback final
+    }
+
+    // FALLBACK: En caso de que bloqueadores de anuncios o la red impidan la geolocalización
+    if (desktopFlag) {
+        desktopFlag.textContent = "🌐";
+        desktopFlag.title = "Visitante Global";
+    }
+    if (mobileFlag) {
+        mobileFlag.textContent = "🌐 Visitante Global";
+    }
+}
+
+/**
  * Contador de Visitas Automático y Robusto para REDEMAT
  * Muestra conteo inmediato con sincronización remota en CounterAPI y respaldo local.
  */
