@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio de Fractales - Universidad de Caldas</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons via SVG -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-800 py-4 px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 text-white p-2.5 rounded-lg shadow-lg shadow-indigo-500/20">
+                <i class="fa-solid fa-square-root-variable text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Laboratorio de Visualización Fractal</h1>
+                <p class="text-xs text-slate-400">Universidad de Caldas • Prof. Luis Eduardo López-Montenegro</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="switchTab('newton')" id="btn-tab-newton" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white transition-all duration-200">
+                Newton-Raphson
+            </button>
+            <button onclick="switchTab('pascal')" id="btn-tab-pascal" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all duration-200">
+                Pascal & Sierpinski
+            </button>
+            <button onclick="switchTab('kaprekar')" id="btn-tab-kaprekar" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all duration-200">
+                Atractor Kaprekar
+            </button>
+            <button onclick="switchTab('chaos')" id="btn-tab-chaos" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all duration-200">
+                Juego del Caos
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Interactive Panel (Left/Top) -->
+        <div class="lg:col-span-8 bg-slate-900 rounded-2xl border border-slate-800 p-4 flex flex-col justify-between shadow-xl">
+            <!-- Newton-Raphson Tab View -->
+            <div id="view-newton" class="tab-view flex flex-col h-full gap-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+                    <div>
+                        <h2 class="text-lg font-semibold text-slate-200">Fractal de Newton para $z^n - 1 = 0$</h2>
+                        <p class="text-xs text-slate-400">Explora las cuencas de atracción de raíces complejas interactuando con el canvas.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <label class="text-xs text-slate-300">Grado ($n$):</label>
+                        <select id="newton-n" class="bg-slate-800 border border-slate-700 text-sm rounded px-2.5 py-1 text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <option value="3">3</option>
+                            <option value="4" selected>4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                        </select>
+                        <button onclick="renderNewton()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded transition">
+                            Renderizar
+                        </button>
+                    </div>
+                </div>
+                <div class="relative bg-slate-950 rounded-xl overflow-hidden flex justify-center items-center flex-1 min-h-[350px] md:min-h-[450px]">
+                    <canvas id="newton-canvas" class="cursor-crosshair absolute inset-0 w-full h-full object-cover"></canvas>
+                    <div id="newton-loader" class="absolute hidden flex flex-col items-center gap-2 bg-slate-950/80 p-4 rounded-xl">
+                        <i class="fa-solid fa-spinner fa-spin text-indigo-500 text-2xl"></i>
+                        <span class="text-xs text-slate-300">Generando fractal complejo...</span>
+                    </div>
+                    <div class="absolute bottom-2 left-2 bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-800 text-[11px] text-slate-300 pointer-events-none">
+                        Haz clic en cualquier punto para trazar su órbita dinámica de Newton.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pascal & Sierpinski Tab View -->
+            <div id="view-pascal" class="tab-view hidden flex flex-col h-full gap-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+                    <div>
+                        <h2 class="text-lg font-semibold text-slate-200">El Secreto Binomial de Pascal</h2>
+                        <p class="text-xs text-slate-400">Ajusta el divisor modular para revelar diferentes simetrías y fractales auto-semejantes.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs text-slate-300">Módulo $m$:</label>
+                            <input type="number" id="pascal-mod" value="2" min="2" max="10" class="w-12 bg-slate-800 border border-slate-700 text-sm rounded px-2 py-1 text-center text-slate-200">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs text-slate-300">Filas ($N$):</label>
+                            <input type="number" id="pascal-rows" value="32" min="10" max="64" class="w-16 bg-slate-800 border border-slate-700 text-sm rounded px-2 py-1 text-center text-slate-200">
+                        </div>
+                        <button onclick="renderPascal()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded transition">
+                            Aplicar
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-slate-950 rounded-xl p-4 overflow-auto flex-1 min-h-[350px] md:min-h-[450px] flex justify-center items-center custom-scrollbar">
+                    <div id="pascal-container" class="font-mono text-[9px] md:text-[11px] leading-relaxed text-center select-none flex flex-col gap-1 w-full max-w-2xl"></div>
+                </div>
+            </div>
+
+            <!-- Kaprekar Tab View -->
+            <div id="view-kaprekar" class="tab-view hidden flex flex-col h-full gap-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+                    <div>
+                        <h2 class="text-lg font-semibold text-slate-200">El Atractor Numérico de Kaprekar (Espacio Completo de 3 Dígitos)</h2>
+                        <p class="text-xs text-slate-400">Visualización del espacio total de números de tres cifras (100 al 999). Haz clic en cualquier celda para rastrear su ruta de colapso.</p>
+                    </div>
+                    <button onclick="renderKaprekar()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded transition self-end">
+                        Recargar Espacio
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
+                    <div class="md:col-span-8 bg-slate-950 rounded-xl p-3 flex justify-center items-center relative min-h-[300px]">
+                        <canvas id="kaprekar-canvas" class="cursor-pointer max-w-full max-h-full"></canvas>
+                        <div class="absolute top-2 left-2 bg-slate-900/90 px-2 py-1 rounded text-[10px] text-slate-300 pointer-events-none">
+                            Grilla Secuencial: 100 a 999 (30x30 celdas)
+                        </div>
+                    </div>
+                    <div class="md:col-span-4 bg-slate-800/40 rounded-xl p-4 flex flex-col justify-between border border-slate-800">
+                        <div class="space-y-3">
+                            <h3 class="text-sm font-semibold text-indigo-400 border-b border-slate-700 pb-1.5">Inspección Dinámica</h3>
+                            <div>
+                                <label class="text-xs text-slate-400 block">Número seleccionado:</label>
+                                <span id="kaprekar-selected-val" class="text-2xl font-bold text-slate-100">-</span>
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-400 block">Órbita al atractor:</label>
+                                <div id="kaprekar-orbit" class="flex flex-col gap-1 mt-1 text-xs text-slate-300 font-mono overflow-y-auto max-h-[180px] custom-scrollbar">
+                                    <span class="text-slate-500 italic">Haz clic en la grilla para simular la órbita del número.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-2 border-t border-slate-700 flex flex-col gap-2 text-xs text-slate-400">
+                            <div class="flex items-center justify-between">
+                                <span>Pasos de Convergencia:</span>
+                                <div class="flex gap-1">
+                                    <span class="w-3 h-3 bg-red-600 rounded" title="0 Pasos"></span>
+                                    <span class="w-3 h-3 bg-orange-500 rounded" title="1-2 Pasos"></span>
+                                    <span class="w-3 h-3 bg-yellow-400 rounded" title="3-4 Pasos"></span>
+                                    <span class="w-3 h-3 bg-emerald-500 rounded" title="5+ Pasos"></span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between border-t border-slate-800 pt-1.5">
+                                <span>Dígitos Iguales (Inválidos):</span>
+                                <span class="w-3 h-3 bg-slate-700 rounded" title="Inválidos (Cifras Iguales)"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chaos Game Tab View -->
+            <div id="view-chaos" class="tab-view hidden flex flex-col h-full gap-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+                    <div>
+                        <h2 class="text-lg font-semibold text-slate-200">El Juego del Caos</h2>
+                        <p class="text-xs text-slate-400">Lanza dados aleatorios y mapea el punto medio hacia el vértice respectivo. Al cabo de miles de iteraciones caóticas, se revela la estructura oculta.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="btn-chaos-step" onclick="stepChaosGame()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded transition">
+                            Paso a Paso
+                        </button>
+                        <button id="btn-chaos-run" onclick="toggleChaosGame()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded transition">
+                            Ejecutar Rápido
+                        </button>
+                        <button onclick="resetChaosGame()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded transition">
+                            Reiniciar
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
+                    <div class="md:col-span-8 bg-slate-950 rounded-xl p-2 relative flex justify-center items-center min-h-[300px]">
+                        <canvas id="chaos-canvas" class="max-w-full max-h-full"></canvas>
+                        <div class="absolute top-2 left-2 bg-slate-900/90 px-2.5 py-1 rounded-lg border border-slate-800 text-[10px] text-slate-300 pointer-events-none">
+                            Puntos: <span id="chaos-count" class="font-bold text-indigo-400">0</span>
+                        </div>
+                    </div>
+                    <div class="md:col-span-4 bg-slate-800/40 rounded-xl p-4 flex flex-col justify-between border border-slate-800">
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-semibold text-indigo-400 border-b border-slate-700 pb-1.5">Consola de Probabilidad</h3>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-slate-400">Último dado:</span>
+                                <span id="chaos-dice" class="text-3xl font-extrabold text-white">-</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-slate-400">Vértice Elegido:</span>
+                                <span id="chaos-vertex" class="text-sm font-semibold text-indigo-300">-</span>
+                            </div>
+                            <div class="p-3 bg-slate-950/60 rounded-lg text-[11px] text-slate-300 space-y-1">
+                                <span class="font-bold text-indigo-400 block mb-1">Reglas de Decisión:</span>
+                                <p>• Dado 1 o 2 $\rightarrow$ Vértice Superior</p>
+                                <p>• Dado 3 o 4 $\rightarrow$ Vértice Inferior Izq</p>
+                                <p>• Dado 5 o 6 $\rightarrow$ Vértice Inferior Der</p>
+                            </div>
+                        </div>
+                        <div class="text-[11px] text-slate-400 italic">
+                            ¡La aleatoriedad genera orden! Observa el Triángulo de Sierpinski emerger.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar / Theoretical Context (Right) -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+            <!-- Theory Block -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-xl space-y-4 flex-1">
+                <div class="flex items-center gap-2 text-indigo-400 font-semibold border-b border-slate-800 pb-2">
+                    <i class="fa-solid fa-shapes"></i>
+                    <h3 class="text-sm tracking-wider uppercase">¿Qué es un Fractal?</h3>
+                </div>
+                <div class="space-y-3 text-xs text-slate-300">
+                    <p class="leading-relaxed">
+                        Un <strong class="text-indigo-300">fractal</strong> es un objeto geométrico que posee <strong class="text-purple-400">autosemejanza</strong>: es decir, si haces "zoom" en cualquiera de sus partes, volverás a ver la misma figura original repetida a menor escala. ¡Es como el brócoli romanesco, los copos de nieve o las hojas de un helecho!
+                    </p>
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                        <span class="text-xs font-semibold text-purple-400 block mb-1">Aplicaciones en el Mundo Real:</span>
+                        <ul class="list-disc pl-4 space-y-1.5 text-slate-400">
+                            <li><strong class="text-slate-300">Cine y Videojuegos:</strong> Se programan ecuaciones fractales para modelar montañas tridimensionales, océanos, nubes y paisajes alienígenas de forma automática.</li>
+                            <li><strong class="text-slate-300">Antenas de Celulares:</strong> Las antenas modernas usan geometría fractal para plegar una gran superficie en un chip minúsculo, captando múltiples bandas de señal.</li>
+                            <li><strong class="text-slate-300">Compresión de Datos:</strong> Los patrones autosemejantes permiten reducir drásticamente el peso de imágenes digitales complejas.</li>
+                        </ul>
+                    </div>
+                    <p class="leading-relaxed">
+                        En este laboratorio interactivo verás cómo <strong class="text-emerald-400">operaciones matemáticas muy sencillas</strong> (repetidas miles de veces) dan vida a patrones increíblemente organizados y artísticos.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Manizales Scientific Banner -->
+            <div class="bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 rounded-2xl border border-indigo-500/30 p-5 shadow-xl">
+                <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                    Círculos Matemáticos
+                </span>
+                <h4 class="text-md font-bold mt-2 text-white">Universidad de Caldas</h4>
+                <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                    Diseñado especialmente para la juventud apasionada por la investigación científica en la región de Caldas.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800 py-3 px-6 text-center text-xs text-slate-500">
+        © 2026 Universidad de Caldas - Facultad de Ciencias Exactas y Naturales. Programado para uso académico interactivo.
+    </footer>
+
+    <!-- Interactive JS Core logic -->
+    <script>
+        // Global variables and Tab Navigation
+        let activeTab = 'newton';
+        
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-view').forEach(view => view.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white');
+                btn.classList.add('bg-slate-800', 'text-slate-300');
+            });
+
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            const targetBtn = document.getElementById(`btn-tab-${tabId}`);
+            targetBtn.classList.remove('bg-slate-800', 'text-slate-300');
+            targetBtn.classList.add('bg-indigo-600', 'text-white');
+            
+            activeTab = tabId;
+
+            // Trigger initialization/drawing if needed
+            if (tabId === 'newton') initNewtonCanvas();
+            if (tabId === 'pascal') renderPascal();
+            if (tabId === 'kaprekar') renderKaprekar();
+            if (tabId === 'chaos') initChaosCanvas();
+        }
+
+        // ==========================================
+        // 1. Newton-Raphson Fractal Logic
+        // ==========================================
+        let newtonCanvas = document.getElementById('newton-canvas');
+        let newtonCtx = newtonCanvas.getContext('2d');
+        let newtonN = 4;
+        let scale = 150;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        function initNewtonCanvas() {
+            const container = newtonCanvas.parentElement;
+            newtonCanvas.width = container.clientWidth;
+            newtonCanvas.height = container.clientHeight;
+            offsetX = newtonCanvas.width / 2;
+            offsetY = newtonCanvas.height / 2;
+            renderNewton();
+        }
+
+        function getNewtonRoots(n) {
+            let roots = [];
+            for (let i = 0; i < n; i++) {
+                let theta = (2 * Math.PI * i) / n;
+                roots.push({ x: Math.cos(theta), y: Math.sin(theta) });
+            }
+            return roots;
+        }
+
+        function renderNewton() {
+            const selectN = document.getElementById('newton-n');
+            newtonN = parseInt(selectN.value);
+            const loader = document.getElementById('newton-loader');
+            loader.classList.remove('hidden');
+
+            // Set dynamic canvas size on window size change
+            const width = newtonCanvas.width;
+            const height = newtonCanvas.height;
+            const imgData = newtonCtx.createImageData(width, height);
+            const roots = getNewtonRoots(newtonN);
+
+            // Palette colors for roots
+            const colors = [
+                [99, 102, 241],   // Indigo
+                [168, 85, 247],   // Purple
+                [236, 72, 153],   // Pink
+                [245, 158, 11],   // Amber
+                [16, 185, 129],   // Emerald
+                [59, 130, 246],   // Blue
+                [239, 68, 68],    // Red
+                [14, 165, 233]     // Sky
+            ];
+
+            // Run in requestAnimationFrame to avoid UI freeze
+            requestAnimationFrame(() => {
+                for (let py = 0; py < height; py++) {
+                    for (let px = 0; px < width; px++) {
+                        // Map pixels to complex coordinates
+                        let zx = (px - offsetX) / scale;
+                        let zy = (py - offsetY) / scale;
+
+                        // Newton iteration z_{k+1} = z_k - f(z_k)/f'(z_k)
+                        let maxIter = 25;
+                        let rootIdx = -1;
+                        let iter = 0;
+
+                        for (iter = 0; iter < maxIter; iter++) {
+                            // Complex operations for z^n - 1
+                            // For simplicity, we implement Newton for z^n - 1
+                            let r = Math.hypot(zx, zy);
+                            let theta = Math.atan2(zy, zx);
+                            
+                            // Prevent division by zero
+                            if (r < 0.0001) break;
+
+                            // f(z) = z^n - 1
+                            // f'(z) = n * z^(n-1)
+                            // z_next = z - (z^n - 1) / (n * z^(n-1)) = ((n-1)*z^n + 1) / (n * z^(n-1))
+                            let rn = Math.pow(r, newtonN);
+                            let thetan = theta * newtonN;
+                            let fz_x = rn * Math.cos(thetan) - 1;
+                            let fz_y = rn * Math.sin(thetan);
+
+                            let r_prime = newtonN * Math.pow(r, newtonN - 1);
+                            let theta_prime = (newtonN - 1) * theta;
+                            let fprime_z_x = r_prime * Math.cos(theta_prime);
+                            let fprime_z_y = r_prime * Math.sin(theta_prime);
+
+                            // Division of complex: f(z) / f'(z)
+                            let denom = fprime_z_x * fprime_z_x + fprime_z_y * fprime_z_y;
+                            let div_x = (fz_x * fprime_z_x + fz_y * fprime_z_y) / denom;
+                            let div_y = (fz_y * fprime_z_x - fz_x * fprime_z_y) / denom;
+
+                            zx = zx - div_x;
+                            zy = zy - div_y;
+
+                            // Check convergence
+                            let found = false;
+                            for (let i = 0; i < roots.length; i++) {
+                                let dx = zx - roots[i].x;
+                                let dy = zy - roots[i].y;
+                                if (dx*dx + dy*dy < 0.0001) {
+                                    rootIdx = i;
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (found) break;
+                        }
+
+                        // Color mapping based on convergence root and iteration speed
+                        let index = (py * width + px) * 4;
+                        if (rootIdx !== -1) {
+                            let c = colors[rootIdx % colors.length];
+                            // Apply shade depending on iteration count (depth)
+                            let factor = 1 - (iter / maxIter) * 0.6;
+                            imgData.data[index] = c[0] * factor;
+                            imgData.data[index+1] = c[1] * factor;
+                            imgData.data[index+2] = c[2] * factor;
+                            imgData.data[index+3] = 255;
+                        } else {
+                            imgData.data[index] = 15;
+                            imgData.data[index+1] = 23;
+                            imgData.data[index+2] = 42;
+                            imgData.data[index+3] = 255;
+                        }
+                    }
+                }
+                newtonCtx.putImageData(imgData, 0, 0);
+                drawNewtonRoots(roots);
+                loader.classList.add('hidden');
+            });
+        }
+
+        function drawNewtonRoots(roots) {
+            roots.forEach((root, i) => {
+                let px = root.x * scale + offsetX;
+                let py = root.y * scale + offsetY;
+                newtonCtx.beginPath();
+                newtonCtx.arc(px, py, 6, 0, 2 * Math.PI);
+                newtonCtx.fillStyle = '#ffffff';
+                newtonCtx.fill();
+                newtonCtx.lineWidth = 2;
+                newtonCtx.strokeStyle = '#000000';
+                newtonCtx.stroke();
+            });
+        }
+
+        // Newton Canvas interact trace orbit
+        newtonCanvas.addEventListener('mousedown', (e) => {
+            const rect = newtonCanvas.getBoundingClientRect();
+            let clickX = e.clientX - rect.left;
+            let clickY = e.clientY - rect.top;
+
+            // Re-render baseline fractal to clear previous orbits
+            renderNewton();
+
+            setTimeout(() => {
+                // Now trace orbit from clicked point
+                let zx = (clickX - offsetX) / scale;
+                let zy = (clickY - offsetY) / scale;
+                
+                newtonCtx.beginPath();
+                newtonCtx.moveTo(clickX, clickY);
+
+                let maxIter = 15;
+                newtonCtx.strokeStyle = '#ffffff';
+                newtonCtx.lineWidth = 3;
+
+                for (let iter = 0; iter < maxIter; iter++) {
+                    let r = Math.hypot(zx, zy);
+                    let theta = Math.atan2(zy, zx);
+                    if (r < 0.001) break;
+
+                    let rn = Math.pow(r, newtonN);
+                    let thetan = theta * newtonN;
+                    let fz_x = rn * Math.cos(thetan) - 1;
+                    let fz_y = rn * Math.sin(thetan);
+
+                    let r_prime = newtonN * Math.pow(r, newtonN - 1);
+                    let theta_prime = (newtonN - 1) * theta;
+                    let fprime_z_x = r_prime * Math.cos(theta_prime);
+                    let fprime_z_y = r_prime * Math.sin(theta_prime);
+
+                    let denom = fprime_z_x * fprime_z_x + fprime_z_y * fprime_z_y;
+                    let div_x = (fz_x * fprime_z_x + fz_y * fprime_z_y) / denom;
+                    let div_y = (fz_y * fprime_z_x - fz_x * fprime_z_y) / denom;
+
+                    zx = zx - div_x;
+                    zy = zy - div_y;
+
+                    let px = zx * scale + offsetX;
+                    let py = zy * scale + offsetY;
+
+                    newtonCtx.lineTo(px, py);
+                    
+                    // Draw node circles
+                    newtonCtx.arc(px, py, 3, 0, 2*Math.PI);
+                }
+                newtonCtx.stroke();
+            }, 50);
+        });
+
+        // ==========================================
+        // 2. Pascal Modular Logic
+        // ==========================================
+        function renderPascal() {
+            const modVal = parseInt(document.getElementById('pascal-mod').value) || 2;
+            const rowsVal = parseInt(document.getElementById('pascal-rows').value) || 32;
+            const container = document.getElementById('pascal-container');
+            container.innerHTML = '';
+
+            let triangle = [];
+            for (let i = 0; i < rowsVal; i++) {
+                triangle[i] = new Array(i + 1);
+                for (let j = 0; j <= i; j++) {
+                    if (j === 0 || j === i) {
+                        triangle[i][j] = 1;
+                    } else {
+                        triangle[i][j] = (triangle[i-1][j-1] + triangle[i-1][j]) % modVal;
+                    }
+                }
+            }
+
+            for (let i = 0; i < rowsVal; i++) {
+                let rowDiv = document.createElement('div');
+                rowDiv.className = "flex justify-center gap-0.5 md:gap-1";
+                for (let j = 0; j <= i; j++) {
+                    let cellVal = triangle[i][j];
+                    let span = document.createElement('span');
+                    // Style cell based on congruence
+                    span.className = `w-2.5 h-2.5 md:w-3.5 md:h-3.5 flex items-center justify-center rounded-sm text-[6px] md:text-[8px] font-bold`;
+                    if (cellVal % modVal === 0) {
+                        span.className += " bg-slate-900 border border-slate-800 text-slate-700";
+                        span.innerText = "0";
+                    } else {
+                        // Generate color gradient based on remainder value
+                        let hue = (cellVal * (360 / modVal)) % 360;
+                        span.style.backgroundColor = `hsl(${hue}, 70%, 50%)`;
+                        span.className += " text-slate-950";
+                        span.innerText = cellVal;
+                    }
+                    rowDiv.appendChild(span);
+                }
+                container.appendChild(rowDiv);
+            }
+        }
+
+        // ==========================================
+        // 3. Kaprekar Attractor Logic
+        // ==========================================
+        let kaprekarCanvas = document.getElementById('kaprekar-canvas');
+        let kaprekarCtx = kaprekarCanvas.getContext('2d');
+        let gridData = [];
+
+        function isInvalidKaprekar(num) {
+            let digits = String(num).padStart(3, '0').split('');
+            return digits[0] === digits[1] && digits[1] === digits[2];
+        }
+
+        function runKaprekarProcess(num) {
+            let steps = [];
+            let current = num;
+            let visited = new Set();
+            steps.push(current);
+
+            while (current !== 495 && !visited.has(current)) {
+                visited.add(current);
+                let digits = String(current).padStart(3, '0').split('').map(Number);
+                let desc = [...digits].sort((a,b) => b-a);
+                let asc = [...digits].sort((a,b) => a-b);
+                let descNum = parseInt(desc.join(''));
+                let ascNum = parseInt(asc.join(''));
+                let next = descNum - ascNum;
+                steps.push(next);
+                if (next === current || next === 0) break; // Terminar si se estanca
+                current = next;
+            }
+            return steps;
+        }
+
+        function renderKaprekar() {
+            // Configurar canvas de alta densidad (30 x 30 = 900 números de 100 a 999)
+            kaprekarCanvas.width = 450;
+            kaprekarCanvas.height = 450;
+            const w = kaprekarCanvas.width;
+            const h = kaprekarCanvas.height;
+            const cellW = w / 30;
+            const cellH = h / 30;
+
+            gridData = [];
+
+            for (let r = 0; r < 30; r++) {
+                gridData[r] = [];
+                for (let c = 0; c < 30; c++) {
+                    // Mapeo secuencial: primer elemento es 100, último es 999
+                    let num = 100 + r * 30 + c;
+                    let invalid = isInvalidKaprekar(num);
+                    let orbit = [];
+                    let stepsCount = -1;
+
+                    if (!invalid) {
+                        orbit = runKaprekarProcess(num);
+                        stepsCount = orbit.length - 1;
+                    }
+
+                    gridData[r][c] = { num, stepsCount, orbit, invalid };
+
+                    // Coordenadas de dibujo
+                    let px = c * cellW;
+                    let py = r * cellH;
+
+                    // Pintar la celda de acuerdo a su velocidad de convergencia o invalidez
+                    if (invalid) {
+                        kaprekarCtx.fillStyle = '#334155'; // Gris pizarra (Dígitos iguales, inválidos)
+                    } else if (stepsCount === 0) {
+                        kaprekarCtx.fillStyle = '#dc2626'; // Rojo (ya está en 495)
+                    } else if (stepsCount <= 2) {
+                        kaprekarCtx.fillStyle = '#f97316'; // Naranja (1 o 2 pasos)
+                    } else if (stepsCount <= 4) {
+                        kaprekarCtx.fillStyle = '#eab308'; // Amarillo (3 o 4 pasos)
+                    } else {
+                        kaprekarCtx.fillStyle = '#10b981'; // Esmeralda (5 o más pasos)
+                    }
+
+                    kaprekarCtx.fillRect(px, py, cellW - 0.5, cellH - 0.5);
+                }
+            }
+        }
+
+        kaprekarCanvas.addEventListener('click', (e) => {
+            const rect = kaprekarCanvas.getBoundingClientRect();
+            let clickX = e.clientX - rect.left;
+            let clickY = e.clientY - rect.top;
+
+            const cellW = rect.width / 30;
+            const cellH = rect.height / 30;
+
+            let col = Math.floor(clickX / cellW);
+            let row = Math.floor(clickY / cellH);
+
+            if (row >= 0 && row < 30 && col >= 0 && col < 30) {
+                let cell = gridData[row][col];
+                document.getElementById('kaprekar-selected-val').innerText = cell.num;
+                let orbitContainer = document.getElementById('kaprekar-orbit');
+                orbitContainer.innerHTML = '';
+                
+                if (cell.invalid) {
+                    let span = document.createElement('span');
+                    span.className = "text-slate-400 italic block leading-relaxed mt-1";
+                    span.innerText = "Número inválido: todas sus cifras son iguales. El algoritmo resta el número de sí mismo dando 0 de forma inmediata.";
+                    orbitContainer.appendChild(span);
+                } else {
+                    cell.orbit.forEach((step, idx) => {
+                        let span = document.createElement('span');
+                        if (step === 495) {
+                            span.className = "text-emerald-400 font-bold block";
+                            span.innerText = `Paso ${idx}: ${step} (¡Atractor Logrado!)`;
+                        } else {
+                            span.className = "block text-slate-300";
+                            span.innerText = `Paso ${idx}: ${step}`;
+                        }
+                        orbitContainer.appendChild(span);
+                    });
+                }
+            }
+        });
+
+        // ==========================================
+        // 4. Chaos Game Logic
+        // ==========================================
+        let chaosCanvas = document.getElementById('chaos-canvas');
+        let chaosCtx = chaosCanvas.getContext('2d');
+        let vertices = [];
+        let curPoint = { x: 0, y: 0 };
+        let chaosPointsCount = 0;
+        let isChaosRunning = false;
+        let chaosInterval = null;
+
+        function initChaosCanvas() {
+            const size = 380;
+            chaosCanvas.width = size;
+            chaosCanvas.height = size;
+            
+            // Set equilateral triangle vertices
+            vertices = [
+                { x: size / 2, y: 30, label: 'A (Top)' },
+                { x: 30, y: size - 30, label: 'B (Left)' },
+                { x: size - 30, y: size - 30, label: 'C (Right)' }
+            ];
+
+            resetChaosGame();
+        }
+
+        function resetChaosGame() {
+            stopChaosGame();
+            chaosCtx.clearRect(0, 0, chaosCanvas.width, chaosCanvas.height);
+            chaosPointsCount = 0;
+            document.getElementById('chaos-count').innerText = '0';
+            document.getElementById('chaos-dice').innerText = '-';
+            document.getElementById('chaos-vertex').innerText = '-';
+
+            // Draw primary vertices
+            vertices.forEach((v, idx) => {
+                chaosCtx.beginPath();
+                chaosCtx.arc(v.x, v.y, 6, 0, 2*Math.PI);
+                chaosCtx.fillStyle = idx === 0 ? '#6366f1' : (idx === 1 ? '#a855f7' : '#ec4899');
+                chaosCtx.fill();
+                chaosCtx.font = 'bold 12px sans-serif';
+                chaosCtx.fillText(String.fromCharCode(65 + idx), v.x - 4, v.y - 10);
+            });
+
+            // Random initial point
+            curPoint.x = Math.random() * (chaosCanvas.width - 100) + 50;
+            curPoint.y = Math.random() * (chaosCanvas.height - 100) + 50;
+            
+            chaosCtx.beginPath();
+            chaosCtx.arc(curPoint.x, curPoint.y, 3, 0, 2*Math.PI);
+            chaosCtx.fillStyle = '#ffffff';
+            chaosCtx.fill();
+        }
+
+        function stepChaosGame() {
+            let diceVal = Math.floor(Math.random() * 6) + 1;
+            let targetVertexIdx = 0;
+
+            if (diceVal <= 2) targetVertexIdx = 0; // Vertices A
+            else if (diceVal <= 4) targetVertexIdx = 1; // Vertices B
+            else targetVertexIdx = 2; // Vertices C
+
+            let target = vertices[targetVertexIdx];
+
+            // Calculate midpoint
+            curPoint.x = (curPoint.x + target.x) / 2;
+            curPoint.y = (curPoint.y + target.y) / 2;
+
+            // Draw point
+            chaosCtx.beginPath();
+            chaosCtx.arc(curPoint.x, curPoint.y, 1, 0, 2*Math.PI);
+            chaosCtx.fillStyle = targetVertexIdx === 0 ? '#818cf8' : (targetVertexIdx === 1 ? '#c084fc' : '#f472b6');
+            chaosCtx.fill();
+
+            chaosPointsCount++;
+            document.getElementById('chaos-count').innerText = chaosPointsCount;
+            document.getElementById('chaos-dice').innerText = diceVal;
+            document.getElementById('chaos-vertex').innerText = target.label;
+        }
+
+        function toggleChaosGame() {
+            if (isChaosRunning) {
+                stopChaosGame();
+            } else {
+                isChaosRunning = true;
+                document.getElementById('btn-chaos-run').innerText = 'Pausar';
+                document.getElementById('btn-chaos-run').className = 'bg-red-600 hover:bg-red-500 text-white text-xs font-semibold px-3 py-1.5 rounded transition';
+                chaosInterval = setInterval(() => {
+                    // Draw multiple points per tick for high-speed simulation
+                    for (let i = 0; i < 30; i++) {
+                        stepChaosGame();
+                    }
+                }, 30);
+            }
+        }
+
+        function stopChaosGame() {
+            isChaosRunning = false;
+            if (chaosInterval) {
+                clearInterval(chaosInterval);
+                chaosInterval = null;
+            }
+            document.getElementById('btn-chaos-run').innerText = 'Ejecutar Rápido';
+            document.getElementById('btn-chaos-run').className = 'bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded transition';
+        }
+
+        // Window onload
+        window.onload = function() {
+            switchTab('newton');
+        };
+    </script>
+</body>
+</html>
